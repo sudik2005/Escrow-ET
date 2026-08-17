@@ -1,0 +1,388 @@
+/* =========================================================
+   web/src/components/layout/AppLayout.css
+
+   Escrow ET Application Shell
+   Uses the global Escrow ET design tokens so that:
+   - Light mode works consistently
+   - Dark mode works consistently
+   - Sidebar and header integrate correctly
+   - Main content follows the same theme
+========================================================= */
+
+
+/* =========================================================
+   LAYOUT VARIABLES
+========================================================= */
+
+:root {
+  --app-sidebar-width: 248px;
+  --app-header-height: 72px;
+
+  --app-content-max-width: 1600px;
+}
+
+
+/* =========================================================
+   APPLICATION LAYOUT
+========================================================= */
+
+.app-layout {
+  position: relative;
+
+  display: flex;
+
+  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+
+  background: var(--bg);
+  color: var(--text);
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+
+/* =========================================================
+   MAIN APPLICATION AREA
+========================================================= */
+
+.app-main {
+  position: relative;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 100vh;
+
+  margin-left: var(--app-sidebar-width);
+
+  background: var(--bg);
+
+  transition:
+    margin-left 0.25s ease,
+    background-color 0.2s ease;
+}
+
+
+/* =========================================================
+   SIDEBAR CLOSED
+========================================================= */
+
+.app-main--sidebar-closed {
+  margin-left: 0;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.app-main .header {
+  width: 100%;
+
+  flex-shrink: 0;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.app-content {
+  position: relative;
+
+  flex: 1;
+
+  min-width: 0;
+  min-height: 0;
+
+  box-sizing: border-box;
+
+  padding: var(--space-lg) var(--space-lg) var(--space-2xl);
+
+  background: var(--bg);
+  color: var(--text);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  -webkit-overflow-scrolling: touch;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+
+/* =========================================================
+   CONTENT INNER CONTAINER
+========================================================= */
+
+.app-content__inner {
+  width: 100%;
+
+  max-width: var(--app-content-max-width);
+
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   PAGE SECTIONS
+========================================================= */
+
+.app-content__section {
+  margin-bottom: var(--space-md);
+}
+
+.app-content__section:last-child {
+  margin-bottom: 0;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.app-content__header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: var(--space-md);
+
+  margin-bottom: var(--space-md);
+}
+
+
+/* =========================================================
+   PAGE HEADER TEXT
+========================================================= */
+
+.app-content__heading {
+  min-width: 0;
+}
+
+.app-content__title {
+  margin: 0;
+
+  color: var(--text-h);
+
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+
+  line-height: var(--line-height-tight);
+
+  letter-spacing: -0.5px;
+}
+
+.app-content__description {
+  max-width: 680px;
+
+  margin: 7px 0 0;
+
+  color: var(--text);
+
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+
+  line-height: var(--line-height-relaxed);
+}
+
+
+/* =========================================================
+   PAGE HEADER ACTIONS
+========================================================= */
+
+.app-content__actions {
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: var(--space-2xs);
+}
+
+
+/* =========================================================
+   GLOBAL FOCUS
+========================================================= */
+
+.app-layout :focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   MAIN CONTENT SCROLLBAR
+========================================================= */
+
+.app-content::-webkit-scrollbar {
+  width: 7px;
+}
+
+.app-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+
+  border-radius: var(--radius-full);
+
+  transition: background-color 0.15s ease;
+}
+
+.app-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text);
+}
+
+
+/* =========================================================
+   DARK MODE SCROLLBAR
+========================================================= */
+
+:root[data-theme='dark'] .app-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+:root[data-theme='dark'] .app-content::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1024px) {
+  .app-main {
+    margin-left: 0;
+
+    min-width: 0;
+  }
+
+  .app-content {
+    padding:
+      var(--space-md)
+      var(--space-md)
+      var(--space-xl);
+  }
+
+  .app-content__header {
+    margin-bottom: var(--space-md);
+  }
+
+  .app-content__title {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+  .app-content {
+    padding:
+      var(--space-md)
+      18px
+      var(--space-lg);
+  }
+
+  .app-content__header {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: var(--space-sm);
+
+    margin-bottom: var(--space-md);
+  }
+
+  .app-content__title {
+    font-size: var(--font-size-2xl);
+
+    letter-spacing: -0.35px;
+  }
+
+  .app-content__description {
+    font-size: var(--font-size-sm);
+  }
+
+  .app-content__actions {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .app-content {
+    padding:
+      20px
+      14px
+      28px;
+  }
+
+  .app-content__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .app-content__description {
+    margin-top: 6px;
+
+    font-size: var(--font-size-sm);
+  }
+
+  .app-content__section {
+    margin-bottom: var(--space-sm);
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+========================================================= */
+
+@media (max-width: 360px) {
+  .app-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .app-content__title {
+    font-size: var(--font-size-lg);
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .app-layout,
+  .app-main,
+  .app-content {
+    transition: none;
+  }
+
+  .app-content::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}
