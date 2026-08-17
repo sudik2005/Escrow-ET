@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 import os
 
+import dj_database_url
 from dotenv import load_dotenv
 
 
@@ -23,18 +24,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ENVIRONMENT VARIABLES
 
-# Load .env from the project root (same directory as manage.py)
+# backend/.env first, then repo-root .env
 load_dotenv(BASE_DIR / '.env')
-
+load_dotenv(BASE_DIR.parent / '.env')
 
 
 # Secret key is stored in .env, not directly in this file.
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    raise RuntimeError('DJANGO_SECRET_KEY is required')
 
 # Read DEBUG from .env.
 DEBUG = os.getenv('DJANGO_DEBUG') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
 
 # APPLICATION DEFINITION
 
@@ -47,10 +54,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Third-party applications
+    'rest_framework',
     'rest_framework.authtoken',
 
     # Local applications
-    'core',
+    'core.apps.CoreConfig',
 ]
 
 
@@ -91,17 +99,19 @@ WSGI_APPLICATION = 'escrow_backend.wsgi.application'
 
 # DATABASE
 
-# Currently using SQLite for local development.
-# DATABASE_URL is present in .env for the team's future database
-# configuration, but it is not being used yet.
-
-DATABASE_URL = os.getenv('DATABASE_URL', '')
+# Supabase PostgreSQL only. No SQLite fallback.
+_database_url = (os.getenv('DATABASE_URL') or '').strip()
+if not _database_url:
+    raise RuntimeError(
+        'DATABASE_URL is required. Use the Supabase PostgreSQL connection string.'
+    )
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(
+        _database_url,
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
 
 
