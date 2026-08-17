@@ -1,27 +1,27 @@
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from "lucide-react";
 
 function Checkout() {
   // TODO: replace this hardcoded data with a real fetch from Django,
   // using a transaction/link ID pulled from the URL (e.g. /pay/:linkId).
   const deal = {
-    productName: 'Yirgacheffe Coffee',
-    sellerName: 'Buna Coffee',
-    description: 'Top quality freshly roasted coffee beans',
+    productName: "Yirgacheffe Coffee",
+    sellerName: "Buna Coffee",
+    description: "Top quality freshly roasted coffee beans",
     itemAmount: 500.0,
     escrowFee: 10.0,
-  }
-  const total = deal.itemAmount + deal.escrowFee
+  };
+  const total = deal.itemAmount + deal.escrowFee;
 
   const whyEscrowSteps = [
-    'Pay safely and securely',
-    'Funds are held in escrow',
-    'Delivery person scans the QR',
-    'Funds are released after delivery',
-  ]
+    "Pay safely and securely",
+    "Funds are held in escrow",
+    "Delivery person scans the QR",
+    "Funds are released after delivery",
+  ];
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-4">
-      <div className="max-w-md mx-auto">
+    <div className="min-h-screen bg-gray-50 text-gray-900 p-4 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-8">
         <div className="flex items-center gap-3 mb-6 pt-2">
           <button type="button" aria-label="Go back">
             <ArrowLeft className="w-5 h-5" />
@@ -32,22 +32,30 @@ function Checkout() {
         {/* Step indicator: Review -> Payment -> Confirm */}
         <div className="flex items-center justify-center gap-2 mb-6 text-xs">
           <span className="flex items-center gap-1.5 font-semibold text-red-800">
-            <span className="w-5 h-5 rounded-full bg-red-800 text-white flex items-center justify-center text-[10px]">1</span>
+            <span className="w-5 h-5 rounded-full bg-red-800 text-white flex items-center justify-center text-[10px]">
+              1
+            </span>
             Review
           </span>
           <span className="text-gray-300">→</span>
           <span className="flex items-center gap-1.5 text-gray-400">
-            <span className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center text-[10px]">2</span>
+            <span className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center text-[10px]">
+              2
+            </span>
             Payment
           </span>
           <span className="text-gray-300">→</span>
           <span className="flex items-center gap-1.5 text-gray-400">
-            <span className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center text-[10px]">3</span>
+            <span className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center text-[10px]">
+              3
+            </span>
             Confirm
           </span>
         </div>
 
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Order Summary</h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-3">
+          Order Summary
+        </h2>
         <div className="flex gap-3 mb-4 pb-4 border-b border-gray-200">
           <div className="w-14 h-14 bg-gray-100 rounded-lg shrink-0" />
           <div>
@@ -90,7 +98,7 @@ function Checkout() {
         </button>
       </div>
     </div>
-  )
+  );
 }
 
-export default Checkout
+export default Checkout;
