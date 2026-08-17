@@ -25,10 +25,9 @@ function CreatePaymentLink() {
 
   return (
     // NOTE: colors are hardcoded for light mode for now.
-    // Once Hermella's theme toggle/CSS variables land, swap these
-    // for her theme tokens instead of maintaining our own light/dark logic.
-    <div className="min-h-screen bg-white text-gray-900 p-4">
-      <div className="max-w-md mx-auto">
+    //TODO: will add theme toggle later
+    <div className="min-h-screen bg-gray-50 text-gray-900 p-4 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-8">
         <div className="flex items-center gap-3 mb-6 pt-2">
           <button type="button" aria-label="Go back">
             <ArrowLeft className="w-5 h-5" />
