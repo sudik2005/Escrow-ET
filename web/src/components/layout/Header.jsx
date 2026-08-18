@@ -1,6 +1,6 @@
 // web/src/components/layout/Header.jsx
 
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/useTheme';
 
 const routeTitles = {
@@ -9,6 +9,7 @@ const routeTitles = {
   '/payment-links': 'Payment Links',
   '/disputes': 'Disputes',
   '/settings/developer': 'Developer Settings',
+  '/docs': 'API Docs',
 };
 
 const Header = ({ sidebarOpen, setSidebarOpen }) => {
@@ -172,6 +173,38 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
           gap-[7px]
         "
       >
+        {/* Read docs */}
+        <Link
+          to="/docs"
+          className="
+            inline-flex
+            h-[38px]
+            items-center
+            justify-center
+            rounded-[7px]
+            border
+            border-[var(--border)]
+            bg-transparent
+            px-3
+            text-[13px]
+            font-semibold
+            leading-none
+            text-[var(--text-h)]
+            no-underline
+            transition-all
+            duration-150
+            hover:border-[var(--brand)]
+            hover:bg-[var(--surface-hover)]
+            hover:text-[var(--brand)]
+            focus-visible:outline
+            focus-visible:outline-2
+            focus-visible:outline-[var(--brand)]
+            focus-visible:outline-offset-2
+          "
+        >
+          Read docs
+        </Link>
+
         {/* Theme toggle */}
         <button
           type="button"

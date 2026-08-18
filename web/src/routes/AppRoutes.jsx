@@ -1,4 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
+import DeveloperSettings from '../pages/DeveloperSettings'
+import DeveloperDocs from '../pages/DeveloperDocs'
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -61,12 +63,12 @@ function AppRoutes() {
 
       <Route
         path="/settings/developer"
-        element={
-          <PlaceholderPage
-            title="Developer Settings"
-            description="Developer integration settings will be implemented next."
-          />
-        }
+        element={<DeveloperSettings />}
+      />
+
+      <Route
+        path="/docs"
+        element={<DeveloperDocs />}
       />
 
       <Route
