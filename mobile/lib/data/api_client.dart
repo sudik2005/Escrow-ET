@@ -41,7 +41,34 @@ class ApiClient {
     return _send('GET', path, token: token);
   }
 
+  Future<List<Map<String, dynamic>>> getList(String path, {String? token}) async {
+    final decoded = await _request('GET', path, token: token);
+    if (decoded is List) {
+      return [
+        for (final item in decoded)
+          if (item is Map) Map<String, dynamic>.from(item),
+      ];
+    }
+    return const [];
+  }
+
   Future<Map<String, dynamic>> _send(
+    String method,
+    String path, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) async {
+    final decoded = await _request(method, path, body: body, token: token);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    if (decoded is Map) {
+      return Map<String, dynamic>.from(decoded);
+    }
+    return <String, dynamic>{};
+  }
+
+  Future<Object?> _request(
     String method,
     String path, {
     Map<String, dynamic>? body,
@@ -89,13 +116,6 @@ class ApiClient {
         statusCode: response.statusCode,
       );
     }
-
-    if (decoded is Map<String, dynamic>) {
-      return decoded;
-    }
-    if (decoded is Map) {
-      return Map<String, dynamic>.from(decoded);
-    }
-    return <String, dynamic>{};
+    return decoded;
   }
 }
