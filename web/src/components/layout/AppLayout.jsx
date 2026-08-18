@@ -1,27 +1,41 @@
-// web/src/components/layout/AppLayout.jsx
-
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './AppLayout.css';
 
+const DESKTOP_BREAKPOINT = 1024;
+
 const AppLayout = ({ children }) => {
-  // Sidebar is open by default on desktop
-  // and closed by default on mobile/tablet.
+
   const [sidebarOpen, setSidebarOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 1024;
+    if (typeof window === 'undefined') {
+      return true;
     }
 
-    return true;
+    return window.innerWidth >= DESKTOP_BREAKPOINT;
   });
 
-  // Automatically close the sidebar when
-  // switching from desktop to mobile/tablet.
+
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    return window.innerWidth < DESKTOP_BREAKPOINT;
+  });
+
+
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1024) {
+      const mobile =
+        window.innerWidth < DESKTOP_BREAKPOINT;
+
+      setIsMobile(mobile);
+
+      if (mobile) {
         setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
       }
     };
 
@@ -32,51 +46,109 @@ const AppLayout = ({ children }) => {
     };
   }, []);
 
-  const openSidebar = () => {
-    setSidebarOpen(true);
-  };
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobile, sidebarOpen]);
 
   const closeSidebar = () => {
-    setSidebarOpen(false);
+    
+    if (window.innerWidth < DESKTOP_BREAKPOINT) {
+      setSidebarOpen(false);
+    }
   };
 
   const toggleSidebar = () => {
     setSidebarOpen((current) => !current);
   };
 
+  const handleContentClick = () => {
+    if (
+      window.innerWidth < DESKTOP_BREAKPOINT &&
+      sidebarOpen
+    ) {
+      closeSidebar();
+    }
+  };
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && sidebarOpen) {
+        closeSidebar();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener(
+        'keydown',
+        handleKeyDown,
+      );
+    };
+  }, [sidebarOpen]);
+
   return (
-    <div className="app-layout">
-      {/* Sidebar */}
+    <div
+      className={`
+        app-layout
+        ${sidebarOpen ? 'app-layout--sidebar-open' : ''}
+        ${isMobile ? 'app-layout--mobile' : ''}
+      `}
+    >
+      
+      {isMobile && sidebarOpen && (
+        <button
+          type="button"
+          className="
+            fixed
+            inset-0
+            z-40
+            cursor-default
+            border-0
+            bg-black/40
+            p-0
+            lg:hidden
+          "
+          onClick={closeSidebar}
+          aria-label="Close navigation"
+        />
+      )}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={closeSidebar}
       />
-
-      {/* Main Application Area */}
       <div
-        className={`app-main ${
-          !sidebarOpen
-            ? 'app-main--sidebar-closed'
-            : ''
-        }`}
+        className={`
+          app-main
+          ${!sidebarOpen ? 'app-main--sidebar-closed' : ''}
+          ${isMobile ? 'app-main--mobile' : ''}
+        `}
       >
-        {/* Header */}
-        <Header
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={toggleSidebar}
-        />
-
-        {/* Main Content */}
+        <div
+          className="
+            relative
+            z-50
+          "
+        >
+          <Header
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={toggleSidebar}
+          />
+        </div>
         <main
-          className="app-content"
-          onClick={() => {
-            if (
-              sidebarOpen &&
-              window.innerWidth < 1024
-            ) {
-              closeSidebar();
-            }
-          }}
+          className="
+            app-content
+            relative
+            z-10
+          "
+          onClick={handleContentClick}
         >
           {children}
         </main>

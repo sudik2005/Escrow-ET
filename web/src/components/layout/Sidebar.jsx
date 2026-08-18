@@ -1,10 +1,11 @@
-// web/src/components/layout/Sidebar.jsx
-
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
 
-// Simple brand mark – shield SVG
+/* =========================================================
+   Brand Mark
+========================================================= */
+
 const BrandMark = () => (
   <svg
     width="32"
@@ -36,84 +37,173 @@ const BrandMark = () => (
   </svg>
 );
 
+/* =========================================================
+   Navigation Items
+========================================================= */
+
+const navigationItems = [
+  {
+    to: '/',
+    label: 'Dashboard',
+    icon: '⌂',
+    end: true,
+  },
+  {
+    to: '/transactions',
+    label: 'Transactions',
+    icon: '⟳',
+  },
+  {
+    to: '/payment-links',
+    label: 'Payment Links',
+    icon: '⊕',
+  },
+  {
+    to: '/disputes',
+    label: 'Disputes',
+    icon: '⚖',
+  },
+];
+
+const settingsItems = [
+  {
+    to: '/settings/developer',
+    label: 'Developer Settings',
+    icon: '⚙',
+  },
+];
+
+/* =========================================================
+   Sidebar
+========================================================= */
+
 const Sidebar = ({ isOpen = true, onClose }) => {
   const sidebarRef = useRef(null);
 
-  /*
-   * Close the sidebar when the user clicks anywhere
-   * outside of the sidebar.
-   *
-   * This is especially useful on mobile/tablet when
-   * the sidebar is opened using the hamburger button.
-   */
+  /* ---------------------------------------------------------
+     Close when clicking outside
+  --------------------------------------------------------- */
+
   useEffect(() => {
     if (!isOpen) {
-      return;
+      return undefined;
     }
 
-    const handleOutsideClick = (event) => {
+    const handlePointerDown = (event) => {
       const sidebar = sidebarRef.current;
 
       if (!sidebar) {
         return;
       }
 
-      // If the click happened outside the sidebar,
-      // close it.
       if (!sidebar.contains(event.target)) {
         onClose?.();
       }
     };
 
-    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('mousedown', handlePointerDown);
 
     return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener(
+        'mousedown',
+        handlePointerDown,
+      );
     };
   }, [isOpen, onClose]);
 
-  /*
-   * Close the sidebar when the user presses Escape.
-   */
+  /* ---------------------------------------------------------
+     Close with Escape
+  --------------------------------------------------------- */
+
   useEffect(() => {
     if (!isOpen) {
-      return;
+      return undefined;
     }
 
-    const handleEscape = (event) => {
+    const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         onClose?.();
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener(
+        'keydown',
+        handleKeyDown,
+      );
     };
   }, [isOpen, onClose]);
 
-  /*
-   * Close the sidebar after selecting a navigation item.
-   *
-   * This mainly affects mobile/tablet. On desktop,
-   * the sidebar normally remains visible.
-   */
+  /* ---------------------------------------------------------
+     Navigation behavior
+
+     On mobile/tablet:
+     selecting a page closes the sidebar.
+
+     On desktop:
+     the sidebar remains open.
+  --------------------------------------------------------- */
+
   const handleNavigation = () => {
     if (window.innerWidth < 1024) {
       onClose?.();
     }
   };
 
+  /* ---------------------------------------------------------
+     Render navigation link
+  --------------------------------------------------------- */
+
+  const renderNavigationItem = (item) => (
+    <NavLink
+      key={item.to}
+      to={item.to}
+      end={item.end}
+      onClick={handleNavigation}
+      className={({ isActive }) =>
+        [
+          'sidebar__nav-link',
+          isActive
+            ? 'sidebar__nav-link--active'
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+      }
+    >
+      <span
+        className="sidebar__nav-icon"
+        aria-hidden="true"
+      >
+        {item.icon}
+      </span>
+
+      <span className="sidebar__nav-label">
+        {item.label}
+      </span>
+    </NavLink>
+  );
+
   return (
     <aside
       ref={sidebarRef}
-      className={`sidebar ${
-        isOpen ? 'sidebar--open' : 'sidebar--closed'
-      }`}
+      className={[
+        'sidebar',
+        isOpen
+          ? 'sidebar--open'
+          : 'sidebar--closed',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       aria-label="Application sidebar"
+      aria-hidden={!isOpen}
     >
-      {/* Brand Area */}
+      {/* =====================================================
+          Brand
+      ===================================================== */}
+
       <div className="sidebar__brand">
         <div className="sidebar__brand-icon">
           <BrandMark />
@@ -130,119 +220,51 @@ const Sidebar = ({ isOpen = true, onClose }) => {
         </div>
       </div>
 
-      {/* Main Navigation */}
+      {/* =====================================================
+          Main Navigation
+      ===================================================== */}
+
       <nav
         className="sidebar__nav"
         aria-label="Main navigation"
       >
-        <NavLink
-          to="/"
-          end
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `sidebar__nav-link ${
-              isActive
-                ? 'sidebar__nav-link--active'
-                : ''
-            }`
-          }
-        >
-          <span
-            className="sidebar__nav-icon"
-            aria-hidden="true"
-          >
-            ⌂
-          </span>
-
-          <span>Dashboard</span>
-        </NavLink>
-
-        <NavLink
-          to="/transactions"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `sidebar__nav-link ${
-              isActive
-                ? 'sidebar__nav-link--active'
-                : ''
-            }`
-          }
-        >
-          <span
-            className="sidebar__nav-icon"
-            aria-hidden="true"
-          >
-            ⟳
-          </span>
-
-          <span>Transactions</span>
-        </NavLink>
-
-        <NavLink
-          to="/payment-links"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `sidebar__nav-link ${
-              isActive
-                ? 'sidebar__nav-link--active'
-                : ''
-            }`
-          }
-        >
-          <span
-            className="sidebar__nav-icon"
-            aria-hidden="true"
-          >
-            ⊕
-          </span>
-
-          <span>Payment Links</span>
-        </NavLink>
-
-        <NavLink
-          to="/disputes"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `sidebar__nav-link ${
-              isActive
-                ? 'sidebar__nav-link--active'
-                : ''
-            }`
-          }
-        >
-          <span
-            className="sidebar__nav-icon"
-            aria-hidden="true"
-          >
-            ⚖
-          </span>
-
-          <span>Disputes</span>
-        </NavLink>
+        {navigationItems.map(renderNavigationItem)}
       </nav>
 
-      {/* Developer Settings */}
-      <div className="sidebar__bottom">
-        <NavLink
-          to="/settings/developer"
-          onClick={handleNavigation}
-          className={({ isActive }) =>
-            `sidebar__nav-link sidebar__nav-link--bottom ${
-              isActive
-                ? 'sidebar__nav-link--active'
-                : ''
-            }`
-          }
-        >
-          <span
-            className="sidebar__nav-icon"
-            aria-hidden="true"
-          >
-            ⚙
-          </span>
+      {/* =====================================================
+          Bottom Navigation
+      ===================================================== */}
 
-          <span>Developer Settings</span>
-        </NavLink>
+      <div className="sidebar__bottom">
+        {settingsItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            onClick={handleNavigation}
+            className={({ isActive }) =>
+              [
+                'sidebar__nav-link',
+                'sidebar__nav-link--bottom',
+                isActive
+                  ? 'sidebar__nav-link--active'
+                  : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+            }
+          >
+            <span
+              className="sidebar__nav-icon"
+              aria-hidden="true"
+            >
+              {item.icon}
+            </span>
+
+            <span className="sidebar__nav-label">
+              {item.label}
+            </span>
+          </NavLink>
+        ))}
       </div>
     </aside>
   );

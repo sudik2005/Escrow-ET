@@ -27,7 +27,7 @@
   border-right: 1px solid var(--border);
   box-shadow: var(--shadow-md);
 
-  z-index: 40;
+  z-index: 50;
 
   overflow-y: auto;
   overscroll-behavior: contain;
