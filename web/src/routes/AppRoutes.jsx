@@ -3,6 +3,13 @@ import AppLayout from '../components/layout/AppLayout'
 import LandingPage from '../pages/LandingPage'
 import DeveloperSettings from '../pages/DeveloperSettings'
 import DeveloperDocs from '../pages/DeveloperDocs'
+import CreatePaymentLink from '../pages/CreatePaymentLink'
+import TransactionTracking from '../pages/TransactionTracking'
+import Checkout from '../pages/Checkout'
+import Payment from '../pages/Payment'
+import PaymentSuccess from '../pages/PaymentSuccess'
+import QRCodeView from '../pages/QRCodeView'
+import DeliveryVerified from '../pages/DeliveryVerified'
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -43,14 +50,12 @@ function AppRoutes() {
           </DashboardLayout>
         }
       />
+
       <Route
         path="/transactions"
         element={
           <DashboardLayout>
-            <PlaceholderPage
-              title="Transactions"
-              description="Transaction tracking will be implemented by the escrow pipeline team."
-            />
+            <TransactionTracking />
           </DashboardLayout>
         }
       />
@@ -59,13 +64,17 @@ function AppRoutes() {
         path="/payment-links"
         element={
           <DashboardLayout>
-            <PlaceholderPage
-              title="Payment Links"
-              description="Payment link creation will be implemented by the escrow pipeline team."
-            />
+            <CreatePaymentLink />
           </DashboardLayout>
         }
       />
+
+      {/* Buyer-facing: standalone, no merchant sidebar */}
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/payment" element={<Payment />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/qr-code" element={<QRCodeView />} />
+      <Route path="/delivery-verified" element={<DeliveryVerified />} />
 
       <Route
         path="/disputes"
