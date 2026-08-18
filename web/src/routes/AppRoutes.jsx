@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
 import AppLayout from '../components/layout/AppLayout'
 import LandingPage from '../pages/LandingPage'
+import DeveloperSettings from '../pages/DeveloperSettings'
+import DeveloperDocs from '../pages/DeveloperDocs'
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -25,17 +27,11 @@ function DashboardLayout({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      {/* =====================================================
-          PUBLIC LANDING PAGE
-      ====================================================== */}
       <Route
         path="/"
         element={<LandingPage />}
       />
 
-      {/* =====================================================
-          MERCHANT APPLICATION
-      ====================================================== */}
       <Route
         path="/dashboard"
         element={
@@ -46,7 +42,7 @@ function AppRoutes() {
             />
           </DashboardLayout>
         }
-      /> 
+      />
       <Route
         path="/transactions"
         element={
@@ -87,17 +83,20 @@ function AppRoutes() {
         path="/settings/developer"
         element={
           <DashboardLayout>
-            <PlaceholderPage
-              title="Developer Settings"
-              description="Developer integration settings will be implemented next."
-            />
+            <DeveloperSettings />
           </DashboardLayout>
         }
       />
 
-      {/* =====================================================
-          404
-      ====================================================== */}
+      <Route
+        path="/docs"
+        element={
+          <DashboardLayout>
+            <DeveloperDocs />
+          </DashboardLayout>
+        }
+      />
+
       <Route
         path="*"
         element={
