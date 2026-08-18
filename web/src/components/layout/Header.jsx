@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/useTheme';
 
 const routeTitles = {
-  '/': 'Dashboard',
+  '/dashboard': 'Dashboard',
   '/transactions': 'Transactions',
   '/payment-links': 'Payment Links',
   '/disputes': 'Disputes',

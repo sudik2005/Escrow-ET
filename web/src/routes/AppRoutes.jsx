@@ -1,4 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
+import AppLayout from '../components/layout/AppLayout'
+import LandingPage from '../pages/LandingPage'
 import DeveloperSettings from '../pages/DeveloperSettings'
 import DeveloperDocs from '../pages/DeveloperDocs'
 
@@ -18,57 +20,81 @@ function PlaceholderPage({ title, description }) {
   )
 }
 
+function DashboardLayout({ children }) {
+  return <AppLayout>{children}</AppLayout>
+}
+
 function AppRoutes() {
   return (
     <Routes>
       <Route
         path="/"
-        element={
-          <PlaceholderPage
-            title="Merchant Dashboard"
-            description="Dashboard content will be added next."
-          />
-        }
+        element={<LandingPage />}
       />
 
       <Route
+        path="/dashboard"
+        element={
+          <DashboardLayout>
+            <PlaceholderPage
+              title="Dashboard"
+              description="The dashboard will be implemented by the escrow pipeline team."
+            />
+          </DashboardLayout>
+        }
+      />
+      <Route
         path="/transactions"
         element={
-          <PlaceholderPage
-            title="Transactions"
-            description="Transaction tracking will be implemented by the escrow pipeline team."
-          />
+          <DashboardLayout>
+            <PlaceholderPage
+              title="Transactions"
+              description="Transaction tracking will be implemented by the escrow pipeline team."
+            />
+          </DashboardLayout>
         }
       />
 
       <Route
         path="/payment-links"
         element={
-          <PlaceholderPage
-            title="Payment Links"
-            description="Payment link creation will be implemented by the escrow pipeline team."
-          />
+          <DashboardLayout>
+            <PlaceholderPage
+              title="Payment Links"
+              description="Payment link creation will be implemented by the escrow pipeline team."
+            />
+          </DashboardLayout>
         }
       />
 
       <Route
         path="/disputes"
         element={
-          <PlaceholderPage
-            title="Disputes"
-            description="Dispute management will be implemented by the dispute resolution team."
-          />
+          <DashboardLayout>
+            <PlaceholderPage
+              title="Disputes"
+              description="Dispute management will be implemented by the dispute resolution team."
+            />
+          </DashboardLayout>
         }
       />
 
       <Route
         path="/settings/developer"
-        element={<DeveloperSettings />}
+        element={
+          <DashboardLayout>
+            <DeveloperSettings />
+          </DashboardLayout>
+        }
       />
 
       <Route
         path="/docs"
-        element={<DeveloperDocs />}
+        element={
+          <DashboardLayout>
+            <DeveloperDocs />
+          </DashboardLayout>
+        }
       />
 
       <Route
