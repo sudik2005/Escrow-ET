@@ -102,6 +102,10 @@ abstract final class AppTheme {
           borderSide: BorderSide(color: brand),
         ),
       ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: brand,
+        foregroundColor: Colors.white,
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: brand,
@@ -115,6 +119,18 @@ abstract final class AppTheme {
           ),
         ).copyWith(
           overlayColor: WidgetStatePropertyAll(brandHover.withValues(alpha: 0.2)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: brand,
+          minimumSize: const Size.fromHeight(48),
+          side: BorderSide(color: brand),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(

@@ -98,7 +98,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 for (final role in const [
                   ('BUYER', 'Buyer'),
                   ('SELLER', 'Seller'),
-                  ('MERCHANT', 'Merchant'),
                 ])
                   ChoiceChip(
                     label: Text(role.$2),

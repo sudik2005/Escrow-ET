@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../models/escrow_contract.dart';
 import '../../state/auth_controller.dart';
+import '../../state/escrow_controller.dart';
 import '../../theme/app_colors.dart';
-import '../widgets/app_controls.dart';
+import '../widgets/brand_card.dart';
 import '../widgets/brand_mark.dart';
+import 'create_escrow_screen.dart';
+import 'escrow_detail_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -15,6 +19,8 @@ class HomeScreen extends ConsumerWidget {
     final isDark = ref.watch(themeControllerProvider);
     final user = session?.user;
     final colors = Theme.of(context).colorScheme;
+    final list = ref.watch(escrowListProvider);
+    final seller = user?.isSeller ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 2),
-            const Text('Dashboard'),
+            const Text('Escrows'),
           ],
         ),
         actions: [
@@ -41,71 +47,172 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () => ref.read(themeControllerProvider.notifier).toggle(),
             icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
           ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'logout') {
+                ref.read(authControllerProvider.notifier).logout();
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'logout', child: Text('Log out')),
+            ],
+          ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: colors.outline),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: colors.outline),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                  ),
+      floatingActionButton: seller
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final created = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(builder: (_) => const CreateEscrowScreen()),
+                );
+                if (created == true) {
+                  ref.invalidate(escrowListProvider);
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('New escrow'),
+            )
+          : null,
+      body: list.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+          children: [
+            BrandCard(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      error is Exception ? error.toString() : 'Could not load escrows.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => ref.invalidate(escrowListProvider),
+                      child: const Text('Try again'),
+                    ),
+                  ],
                 ),
-                Padding(
+              ),
+            ),
+          ],
+        ),
+        data: (contracts) => RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(escrowListProvider);
+            await ref.read(escrowListProvider.future);
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+            children: [
+              BrandCard(
+                child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const BrandLockup(subtitle: 'Signed in'),
-                      const SizedBox(height: 20),
+                      BrandLockup(subtitle: seller ? 'Seller' : 'Buyer'),
+                      const SizedBox(height: 16),
                       Text(
                         user?.username ?? '',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
-                        '${user?.role ?? ''} · ${user?.phoneNumber ?? ''}',
+                        user?.phoneNumber ?? '',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isDark ? AppColors.darkText : AppColors.lightText,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Balance is computed from the ledger. Escrow and QR screens come after the API for those flows exists.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          height: 1.5,
                           color: isDark ? AppColors.darkText : AppColors.lightText,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
+              const SizedBox(height: 16),
+              if (contracts.isEmpty)
+                BrandCard(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+                    child: Text(
+                      seller
+                          ? 'Create an escrow to hold a buyer’s payment until they confirm delivery.'
+                          : 'When a seller creates an escrow with your phone number, it shows up here.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                    ),
+                  ),
+                )
+              else
+                for (final contract in contracts) ...[
+                  _EscrowTile(contract: contract),
+                  const SizedBox(height: 12),
+                ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EscrowTile extends StatelessWidget {
+  const _EscrowTile({required this.contract});
+
+  final EscrowContract contract;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.darkText
+        : AppColors.lightText;
+
+    return BrandCard(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => EscrowDetailScreen(contract: contract)),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    contract.itemName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${contract.amount} ${contract.currency}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: muted),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          AppButton(
-            label: 'Log out',
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
-          ),
-        ],
+            Text(
+              contract.statusLabel,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
