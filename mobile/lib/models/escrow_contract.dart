@@ -38,6 +38,8 @@ class EscrowContract {
 
   String get statusLabel => status.replaceAll('_', ' ');
 
+  double get amountValue => double.tryParse(amount) ?? 0;
+
   EscrowContract copyWith({String? paymentLink, String? status}) {
     return EscrowContract(
       id: id,

@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.db import models
 from django.shortcuts import get_object_or_404
@@ -173,6 +174,62 @@ class InitiateEscrowPaymentView(APIView):
             )
         return Response({"payment_link": contract.payment_link})
 
+
+class SandboxFundView(APIView):
+    """
+    POST /api/escrow/<id>/sandbox-fund/
+    DEBUG only. Buyer marks a PENDING_PAYMENT contract as funded so
+    local demos can continue when Chapa cannot webhook localhost.
+    Uses record_escrow_funded() so the ledger stays balanced.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        if not settings.DEBUG:
+            return Response(
+                {"error": "Sandbox funding is only available in DEBUG"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        contract = get_object_or_404(EscrowContract, pk=pk)
+        if request.user != contract.buyer:
+            return Response(
+                {"error": "Only the buyer can sandbox-fund this contract"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if contract.status != EscrowContract.Status.PENDING_PAYMENT:
+            return Response(
+                {"error": f"Cannot sandbox-fund from status {contract.status}"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        payment_txn = (
+            contract.payment_transactions.filter(
+                direction=PaymentTransaction.Direction.INBOUND_FUNDING,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if payment_txn is None:
+            payment_txn = PaymentTransaction.objects.create(
+                escrow_contract=contract,
+                provider=PaymentTransaction.Provider.MOCK,
+                direction=PaymentTransaction.Direction.INBOUND_FUNDING,
+                status=PaymentTransaction.Status.INITIATED,
+                provider_tx_ref=f"sandbox-{contract.id}-{uuid.uuid4().hex[:8]}",
+                amount=contract.amount,
+                currency=contract.currency,
+                raw_payload={"source": "sandbox-fund"},
+            )
+
+        if payment_txn.status != PaymentTransaction.Status.SUCCESS:
+            payment_txn.status = PaymentTransaction.Status.SUCCESS
+            payment_txn.raw_payload = {**payment_txn.raw_payload, "source": "sandbox-fund"}
+            payment_txn.save(update_fields=["status", "raw_payload"])
+
+        record_escrow_funded(contract, payment_txn)
+        contract.refresh_from_db()
+        return Response(EscrowContractSerializer(contract).data)
 
 
 # 2. List my escrows

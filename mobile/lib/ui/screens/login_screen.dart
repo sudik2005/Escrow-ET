@@ -18,6 +18,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _password = TextEditingController();
   bool _hidePassword = true;
 
+  String? _localError;
+
   @override
   void dispose() {
     _username.dispose();
@@ -29,8 +31,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final username = _username.text.trim();
     final password = _password.text;
     if (username.isEmpty || password.isEmpty) {
+      setState(() => _localError = 'Username and password are required.');
       return;
     }
+    setState(() => _localError = null);
     await ref.read(authControllerProvider.notifier).login(
       username: username,
       password: password,
@@ -71,10 +75,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
             ),
-            if (auth.error != null) ...[
+            if (auth.error != null || _localError != null) ...[
               const SizedBox(height: 16),
               Text(
-                auth.error!,
+                auth.error ?? _localError!,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
