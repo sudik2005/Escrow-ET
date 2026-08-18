@@ -16,8 +16,7 @@ function PaymentSuccess() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-h)] p-4 flex items-center justify-center">
-      <div className="max-w-md w-full bg-[var(--surface)] rounded-2xl shadow-sm p-8 text-center">
-        <div className="w-16 h-16 bg-[var(--brand)] rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="max-w-md w-full bg-[var(--surface)] rounded-2xl shadow-[var(--shadow-card)] p-8">        <div className="w-16 h-16 bg-[var(--brand)] rounded-full flex items-center justify-center mx-auto mb-4">
           <Check className="w-8 h-8 text-white" strokeWidth={3} />
         </div>
 

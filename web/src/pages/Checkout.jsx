@@ -24,8 +24,7 @@ function Checkout() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-h)] p-4 flex items-center justify-center">
-      <div className="max-w-md w-full bg-[var(--surface)] rounded-2xl shadow-sm p-8">
-        <div className="flex items-center gap-3 mb-6">
+      <div className="max-w-md w-full bg-[var(--surface)] rounded-2xl shadow-[var(--shadow-card)] p-8">        <div className="flex items-center gap-3 mb-6">
           <button type="button" aria-label="Go back">
             <ArrowLeft className="w-5 h-5" />
           </button>
