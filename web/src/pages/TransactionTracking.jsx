@@ -2,13 +2,13 @@ import { ArrowLeft } from 'lucide-react'
 
 function TransactionTracking() {
   // TODO: replace with real transaction data + status fetched from Django,
-  // which will update as it receives Chapa webhooks.
+  // which will update as it receives Chapa webhooks from the backend.
   const transaction = {
     id: 'ET-10294',
     productName: 'Yirgacheffe Coffee',
     seller: 'Buna Coffee',
     amount: 500.0,
-    status: 'Funds Locked', // Payment Initiated | Funds Locked | Delivery In Progress | Funds Released
+    status: 'Funds Locked',
   }
 
   const timeline = [

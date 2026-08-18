@@ -29,7 +29,7 @@ function Checkout() {
           <h1 className="text-lg font-bold">Checkout</h1>
         </div>
 
-        {/* Step indicator: Review -> Payment -> Confirm */}
+        
         <div className="flex items-center justify-center gap-2 mb-6 text-xs">
           <span className="flex items-center gap-1.5 font-semibold text-red-800">
             <span className="w-5 h-5 rounded-full bg-red-800 text-white flex items-center justify-center text-[10px]">
