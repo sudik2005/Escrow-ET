@@ -18,5 +18,6 @@ urlpatterns = [
 
     # --- Supporting infrastructure ---
     path("escrow/<uuid:pk>/pay/", views.InitiateEscrowPaymentView.as_view(), name="escrow-pay"),
+    path("escrow/<uuid:pk>/sandbox-fund/", views.SandboxFundView.as_view(), name="escrow-sandbox-fund"),
     path("webhooks/chapa/", views.ChapaWebhookView.as_view(), name="chapa-webhook"),
 ]

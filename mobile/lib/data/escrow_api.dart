@@ -72,6 +72,11 @@ class EscrowApi {
     return EscrowContract.fromJson(json);
   }
 
+  Future<EscrowContract> sandboxFund(String token, String id) async {
+    final json = await _client.post('/escrow/$id/sandbox-fund/', token: token);
+    return EscrowContract.fromJson(json);
+  }
+
   Future<String> pay(String token, String id) async {
     final json = await _client.post('/escrow/$id/pay/', token: token);
     final link = json['payment_link']?.toString() ?? '';

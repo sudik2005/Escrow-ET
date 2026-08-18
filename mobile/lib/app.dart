@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'state/auth_controller.dart';
-import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
-import 'ui/screens/home_screen.dart';
 import 'ui/screens/login_screen.dart';
+import 'ui/shell/main_shell.dart';
 import 'ui/widgets/brand_mark.dart';
 
 class EscrowApp extends ConsumerWidget {
@@ -17,6 +16,7 @@ class EscrowApp extends ConsumerWidget {
     final isDark = ref.watch(themeControllerProvider);
 
     return MaterialApp(
+      key: ValueKey(auth.status),
       title: 'Escrow ET',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
@@ -25,7 +25,7 @@ class EscrowApp extends ConsumerWidget {
       home: switch (auth.status) {
         AuthStatus.booting => const _BootScreen(),
         AuthStatus.signedOut => const LoginScreen(),
-        AuthStatus.signedIn => const HomeScreen(),
+        AuthStatus.signedIn => const MainShell(),
       },
     );
   }
@@ -37,7 +37,6 @@ class _BootScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: AppColors.lightBg,
       body: Center(child: BrandMark(size: 48)),
     );
   }
