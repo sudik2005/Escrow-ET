@@ -71,6 +71,11 @@ const settingsItems = [
     label: 'Developer Settings',
     icon: '⚙',
   },
+  {
+    to: '/docs',
+    label: 'API Docs',
+    icon: '▤',
+  },
 ];
 
 /* =========================================================
