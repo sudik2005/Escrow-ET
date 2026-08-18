@@ -1,0 +1,378 @@
+/* =========================================================
+   web/src/components/layout/AppLayout.css
+
+   Escrow ET Application Shell
+========================================================= */
+
+
+/* =========================================================
+   LAYOUT VARIABLES
+========================================================= */
+
+:root {
+  --app-sidebar-width: 248px;
+  --app-header-height: 72px;
+  --app-content-max-width: 1600px;
+}
+
+
+/* =========================================================
+   APPLICATION ROOT
+========================================================= */
+
+.app-layout {
+  position: relative;
+
+  display: flex;
+
+  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+
+  background: var(--bg);
+  color: var(--text);
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================================
+   MAIN APPLICATION AREA
+========================================================= */
+
+.app-main {
+  position: relative;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 100vh;
+
+  margin-left: var(--app-sidebar-width);
+
+  background: var(--bg);
+
+  transition:
+    margin-left 0.25s ease;
+}
+
+
+/* =========================================================
+   SIDEBAR CLOSED
+========================================================= */
+
+.app-main--sidebar-closed {
+  margin-left: 0;
+}
+
+
+/* =========================================================
+   MOBILE MAIN AREA
+
+   Important:
+   The mobile sidebar is an overlay, so the main content
+   should NEVER move when it opens/closes.
+========================================================= */
+
+.app-main--mobile {
+  width: 100%;
+  margin-left: 0;
+
+  transition: none;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.app-main .header {
+  position: relative;
+
+  z-index: 50;
+
+  width: 100%;
+
+  flex-shrink: 0;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.app-content {
+  position: relative;
+
+  flex: 1;
+
+  min-width: 0;
+  min-height: 0;
+
+  box-sizing: border-box;
+
+  padding: 32px 32px 48px;
+
+  background: var(--bg);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* =========================================================
+   CONTENT INNER CONTAINER
+========================================================= */
+
+.app-content__inner {
+  width: 100%;
+
+  max-width: var(--app-content-max-width);
+
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   PAGE SECTIONS
+========================================================= */
+
+.app-content__section {
+  margin-bottom: 28px;
+}
+
+.app-content__section:last-child {
+  margin-bottom: 0;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.app-content__header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  margin-bottom: 28px;
+}
+
+
+/* =========================================================
+   PAGE HEADER TEXT
+========================================================= */
+
+.app-content__heading {
+  min-width: 0;
+}
+
+.app-content__title {
+  margin: 0;
+
+  color: var(--text-h);
+
+  font-size: 28px;
+  font-weight: 600;
+
+  line-height: 1.2;
+
+  letter-spacing: -0.5px;
+}
+
+.app-content__description {
+  max-width: 680px;
+
+  margin: 7px 0 0;
+
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 400;
+
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   PAGE HEADER ACTIONS
+========================================================= */
+
+.app-content__actions {
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   FOCUS
+========================================================= */
+
+.app-layout :focus-visible {
+  outline-color: var(--brand);
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.app-content::-webkit-scrollbar {
+  width: 7px;
+}
+
+.app-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+
+  border-radius: 999px;
+}
+
+.app-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text);
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1023px) {
+  .app-layout {
+    display: block;
+
+    width: 100%;
+  }
+
+  .app-main {
+    width: 100%;
+
+    min-width: 0;
+    min-height: 100vh;
+
+    margin-left: 0;
+
+    transition: none;
+  }
+
+  .app-main--sidebar-closed {
+    margin-left: 0;
+  }
+
+  .app-content {
+    padding: 28px 24px 40px;
+  }
+
+  .app-content__header {
+    margin-bottom: 24px;
+  }
+
+  .app-content__title {
+    font-size: 26px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+  .app-content {
+    padding: 24px 18px 32px;
+  }
+
+  .app-content__header {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 18px;
+
+    margin-bottom: 22px;
+  }
+
+  .app-content__title {
+    font-size: 24px;
+
+    letter-spacing: -0.35px;
+  }
+
+  .app-content__description {
+    font-size: 13px;
+  }
+
+  .app-content__actions {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .app-content {
+    padding: 20px 14px 28px;
+  }
+
+  .app-content__title {
+    font-size: 22px;
+  }
+
+  .app-content__description {
+    margin-top: 6px;
+
+    font-size: 13px;
+  }
+
+  .app-content__section {
+    margin-bottom: 22px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+========================================================= */
+
+@media (max-width: 360px) {
+  .app-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .app-content__title {
+    font-size: 20px;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .app-main {
+    transition: none;
+  }
+}

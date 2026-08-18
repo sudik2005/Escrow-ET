@@ -1,0 +1,377 @@
+/* web/src/components/layout/Sidebar.css */
+
+:root {
+  --sidebar-width: 248px;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: var(--sidebar-width);
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 0 18px;
+
+  background: var(--surface);
+  color: var(--text-h);
+
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+
+  z-index: 50;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  transition:
+    transform 0.25s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 23px 4px 22px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar__brand-icon {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--brand);
+  color: #fff;
+
+  border-radius: var(--radius-lg);
+
+  font-size: 18px;
+  font-weight: var(--font-weight-bold);
+
+  box-shadow: var(--shadow);
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sidebar__brand-icon:hover {
+  background: var(--brand-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar__brand-text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  line-height: 1.2;
+}
+
+.sidebar__brand-name {
+  color: var(--text-h);
+
+  font-size: 17px;
+  font-weight: var(--font-weight-bold);
+
+  letter-spacing: -0.35px;
+  white-space: nowrap;
+}
+
+.sidebar__brand-sub {
+  margin-top: 3px;
+
+  color: var(--text);
+
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+.sidebar__brand-accent {
+  color: var(--brand);
+}
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+.sidebar__nav {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 24px 0;
+  gap: 5px;
+}
+
+.sidebar__nav-link {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  min-height: 43px;
+
+  padding: 0 13px;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+
+  background: transparent;
+
+  color: var(--text);
+
+  text-decoration: none;
+
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+/* Hover */
+
+.sidebar__nav-link:hover:not(.sidebar__nav-link--active) {
+  background: var(--surface-hover);
+  border-color: var(--border);
+  color: var(--text-h);
+
+  transform: translateX(1px);
+}
+
+/* Active */
+
+.sidebar__nav-link--active {
+  background: var(--surface-active, var(--surface-hover));
+
+  border-color: var(--brand);
+
+  color: var(--brand);
+
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Active red indicator */
+
+.sidebar__nav-link--active::before {
+  content: '';
+
+  position: absolute;
+
+  left: -18px;
+  top: 7px;
+  bottom: 7px;
+
+  width: 3px;
+
+  background: var(--brand);
+
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+
+  box-shadow: 0 0 8px rgba(192, 0, 0, 0.25);
+}
+
+/* Icon */
+
+.sidebar__nav-icon {
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: currentColor;
+
+  font-size: 16px;
+
+  opacity: 0.7;
+
+  transition:
+    color 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.sidebar__nav-link:hover .sidebar__nav-icon {
+  opacity: 0.9;
+}
+
+.sidebar__nav-link--active .sidebar__nav-icon {
+  color: var(--brand);
+  opacity: 1;
+}
+
+/* Focus */
+
+.sidebar__nav-link:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   BOTTOM SECTION
+========================================================= */
+
+.sidebar__bottom {
+  padding-top: 17px;
+  padding-bottom: 20px;
+
+  border-top: 1px solid var(--border);
+}
+
+.sidebar__nav-link--bottom {
+  margin-top: 5px;
+}
+
+/* =========================================================
+   FOOTER / SYSTEM STATUS
+========================================================= */
+
+.sidebar__footer {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 15px 4px;
+
+  border-top: 1px solid var(--border);
+}
+
+.sidebar__status-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: var(--success);
+
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.sidebar__status-title {
+  display: block;
+
+  color: var(--text-h);
+
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.sidebar__status-text {
+  display: block;
+
+  margin-top: 2px;
+
+  color: var(--text);
+
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1024px) {
+  .sidebar--closed {
+    transform: translateX(-100%);
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: min(280px, 86vw);
+
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .sidebar__brand {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .sidebar__nav {
+    padding-top: 20px;
+  }
+
+  .sidebar__nav-link--active::before {
+    left: -16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar__brand-icon,
+  .sidebar__nav-link,
+  .sidebar__nav-icon {
+    transition: none;
+  }
+}
