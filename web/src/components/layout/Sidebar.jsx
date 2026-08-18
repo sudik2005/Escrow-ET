@@ -43,7 +43,7 @@ const BrandMark = () => (
 
 const navigationItems = [
   {
-    to: '/',
+    to: '/dashboard',
     label: 'Dashboard',
     icon: '⌂',
     end: true,
