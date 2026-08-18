@@ -15,14 +15,7 @@ function Payment() {
   async function handlePayNow() {
     setIsRedirecting(true);
     try {
-      // TODO: replace this mock with a real call to the Django backend, e.g.:
-      // const res = await fetch('/api/payments/initiate/', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ transactionId: deal.id }),
-      // })
-      // const data = await res.json()
-      // window.location.href = data.chapaCheckoutUrl
+      // TODO: replace this mock with a real call to the Django backend,
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       navigate("/payment-success");
