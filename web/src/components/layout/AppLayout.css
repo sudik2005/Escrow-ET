@@ -2,11 +2,6 @@
    web/src/components/layout/AppLayout.css
 
    Escrow ET Application Shell
-   Uses the global Escrow ET design tokens so that:
-   - Light mode works consistently
-   - Dark mode works consistently
-   - Sidebar and header integrate correctly
-   - Main content follows the same theme
 ========================================================= */
 
 
@@ -17,13 +12,12 @@
 :root {
   --app-sidebar-width: 248px;
   --app-header-height: 72px;
-
   --app-content-max-width: 1600px;
 }
 
 
 /* =========================================================
-   APPLICATION LAYOUT
+   APPLICATION ROOT
 ========================================================= */
 
 .app-layout {
@@ -38,9 +32,7 @@
   background: var(--bg);
   color: var(--text);
 
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+  overflow-x: hidden;
 }
 
 
@@ -64,8 +56,7 @@
   background: var(--bg);
 
   transition:
-    margin-left 0.25s ease,
-    background-color 0.2s ease;
+    margin-left 0.25s ease;
 }
 
 
@@ -79,10 +70,30 @@
 
 
 /* =========================================================
+   MOBILE MAIN AREA
+
+   Important:
+   The mobile sidebar is an overlay, so the main content
+   should NEVER move when it opens/closes.
+========================================================= */
+
+.app-main--mobile {
+  width: 100%;
+  margin-left: 0;
+
+  transition: none;
+}
+
+
+/* =========================================================
    HEADER
 ========================================================= */
 
 .app-main .header {
+  position: relative;
+
+  z-index: 50;
+
   width: 100%;
 
   flex-shrink: 0;
@@ -105,19 +116,14 @@
 
   box-sizing: border-box;
 
-  padding: var(--space-lg) var(--space-lg) var(--space-2xl);
+  padding: 32px 32px 48px;
 
   background: var(--bg);
-  color: var(--text);
 
   overflow-x: hidden;
   overflow-y: auto;
 
   -webkit-overflow-scrolling: touch;
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
 }
 
 
@@ -139,7 +145,7 @@
 ========================================================= */
 
 .app-content__section {
-  margin-bottom: var(--space-md);
+  margin-bottom: 28px;
 }
 
 .app-content__section:last-child {
@@ -157,9 +163,9 @@
   align-items: flex-start;
   justify-content: space-between;
 
-  gap: var(--space-md);
+  gap: 24px;
 
-  margin-bottom: var(--space-md);
+  margin-bottom: 28px;
 }
 
 
@@ -176,10 +182,10 @@
 
   color: var(--text-h);
 
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-semibold);
+  font-size: 28px;
+  font-weight: 600;
 
-  line-height: var(--line-height-tight);
+  line-height: 1.2;
 
   letter-spacing: -0.5px;
 }
@@ -191,10 +197,10 @@
 
   color: var(--text);
 
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-regular);
+  font-size: 14px;
+  font-weight: 400;
 
-  line-height: var(--line-height-relaxed);
+  line-height: 1.55;
 }
 
 
@@ -209,22 +215,21 @@
 
   align-items: center;
 
-  gap: var(--space-2xs);
+  gap: 10px;
 }
 
 
 /* =========================================================
-   GLOBAL FOCUS
+   FOCUS
 ========================================================= */
 
 .app-layout :focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
+  outline-color: var(--brand);
 }
 
 
 /* =========================================================
-   MAIN CONTENT SCROLLBAR
+   SCROLLBAR
 ========================================================= */
 
 .app-content::-webkit-scrollbar {
@@ -238,9 +243,7 @@
 .app-content::-webkit-scrollbar-thumb {
   background: var(--border);
 
-  border-radius: var(--radius-full);
-
-  transition: background-color 0.15s ease;
+  border-radius: 999px;
 }
 
 .app-content::-webkit-scrollbar-thumb:hover {
@@ -249,42 +252,41 @@
 
 
 /* =========================================================
-   DARK MODE SCROLLBAR
-========================================================= */
-
-:root[data-theme='dark'] .app-content::-webkit-scrollbar-thumb {
-  background: var(--border);
-}
-
-:root[data-theme='dark'] .app-content::-webkit-scrollbar-thumb:hover {
-  background: #444444;
-}
-
-
-/* =========================================================
    TABLET
 ========================================================= */
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
+  .app-layout {
+    display: block;
+
+    width: 100%;
+  }
+
   .app-main {
-    margin-left: 0;
+    width: 100%;
 
     min-width: 0;
+    min-height: 100vh;
+
+    margin-left: 0;
+
+    transition: none;
+  }
+
+  .app-main--sidebar-closed {
+    margin-left: 0;
   }
 
   .app-content {
-    padding:
-      var(--space-md)
-      var(--space-md)
-      var(--space-xl);
+    padding: 28px 24px 40px;
   }
 
   .app-content__header {
-    margin-bottom: var(--space-md);
+    margin-bottom: 24px;
   }
 
   .app-content__title {
-    font-size: var(--font-size-2xl);
+    font-size: 26px;
   }
 }
 
@@ -295,10 +297,7 @@
 
 @media (max-width: 768px) {
   .app-content {
-    padding:
-      var(--space-md)
-      18px
-      var(--space-lg);
+    padding: 24px 18px 32px;
   }
 
   .app-content__header {
@@ -306,19 +305,19 @@
 
     align-items: stretch;
 
-    gap: var(--space-sm);
+    gap: 18px;
 
-    margin-bottom: var(--space-md);
+    margin-bottom: 22px;
   }
 
   .app-content__title {
-    font-size: var(--font-size-2xl);
+    font-size: 24px;
 
     letter-spacing: -0.35px;
   }
 
   .app-content__description {
-    font-size: var(--font-size-sm);
+    font-size: 13px;
   }
 
   .app-content__actions {
@@ -333,24 +332,21 @@
 
 @media (max-width: 480px) {
   .app-content {
-    padding:
-      20px
-      14px
-      28px;
+    padding: 20px 14px 28px;
   }
 
   .app-content__title {
-    font-size: var(--font-size-xl);
+    font-size: 22px;
   }
 
   .app-content__description {
     margin-top: 6px;
 
-    font-size: var(--font-size-sm);
+    font-size: 13px;
   }
 
   .app-content__section {
-    margin-bottom: var(--space-sm);
+    margin-bottom: 22px;
   }
 }
 
@@ -366,7 +362,7 @@
   }
 
   .app-content__title {
-    font-size: var(--font-size-lg);
+    font-size: 20px;
   }
 }
 
@@ -376,13 +372,7 @@
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .app-layout,
-  .app-main,
-  .app-content {
-    transition: none;
-  }
-
-  .app-content::-webkit-scrollbar-thumb {
+  .app-main {
     transition: none;
   }
 }

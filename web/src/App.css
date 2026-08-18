@@ -1,18 +1,4 @@
-/* =========================================================
-   Escrow ET — Page Placeholder
-   Uses Global Design Tokens from:
-   web/src/index.css
-
-   Brand: Deep Red
-   Light: White / Soft Gray
-   Dark: Black / Dark Gray
-========================================================= */
-
-
-/* =========================================================
-   PLACEHOLDER CONTAINER
-========================================================= */
-
+@import "tailwindcss";
 .page-placeholder {
   width: 100%;
   min-height: 400px;
