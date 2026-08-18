@@ -51,6 +51,7 @@ function AppRoutes() {
         }
       />
 
+      {/* Merchant-facing: wrapped in the dashboard shell (sidebar + header) */}
       <Route
         path="/transactions"
         element={

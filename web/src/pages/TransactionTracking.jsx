@@ -75,10 +75,11 @@ function TransactionTracking() {
           <span className="font-bold">{transaction.amount.toFixed(2)} ETB</span>
         </div>
 
-       <button
+        <button
           type="button"
           onClick={() => navigate('/qr-code')}
-          className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white font-semibold py-3.5 rounded-xl transition-colors">
+          className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white font-semibold py-3.5 rounded-xl transition-colors"
+        >
           View QR Code
         </button>
       </div>
