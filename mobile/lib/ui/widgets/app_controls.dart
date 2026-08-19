@@ -6,27 +6,29 @@ class AppButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.busy = false,
+    this.outlined = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool busy;
+  final bool outlined;
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: busy ? null : onPressed,
-      child: busy
-          ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
-          : Text(label),
+    final spinner = SizedBox(
+      width: 18,
+      height: 18,
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        color: outlined ? Theme.of(context).colorScheme.primary : Colors.white,
+      ),
     );
+    final child = busy ? spinner : Text(label);
+    if (outlined) {
+      return OutlinedButton(onPressed: busy ? null : onPressed, child: child);
+    }
+    return FilledButton(onPressed: busy ? null : onPressed, child: child);
   }
 }
 
@@ -42,6 +44,7 @@ class AppTextField extends StatelessWidget {
     this.autofillHints,
     this.onSubmitted,
     this.suffix,
+    this.maxLines = 1,
   });
 
   final TextEditingController controller;
@@ -53,6 +56,7 @@ class AppTextField extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final ValueChanged<String>? onSubmitted;
   final Widget? suffix;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +65,9 @@ class AppTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.6,
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
@@ -74,6 +79,7 @@ class AppTextField extends StatelessWidget {
           textInputAction: textInputAction,
           autofillHints: autofillHints,
           onSubmitted: onSubmitted,
+          maxLines: obscureText ? 1 : maxLines,
           decoration: InputDecoration(
             hintText: hint,
             suffixIcon: suffix,

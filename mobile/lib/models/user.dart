@@ -17,6 +17,9 @@ class User {
   final bool kycVerified;
   final String balance;
 
+  bool get isSeller => role == 'SELLER';
+  bool get isBuyer => role == 'BUYER';
+
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id']?.toString() ?? '',

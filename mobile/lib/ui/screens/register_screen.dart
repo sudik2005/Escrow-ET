@@ -19,6 +19,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _password = TextEditingController();
   String _role = 'BUYER';
   bool _hidePassword = true;
+  String? _localError;
 
   @override
   void dispose() {
@@ -33,9 +34,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final username = _username.text.trim();
     final phone = _phone.text.trim();
     final password = _password.text;
-    if (username.isEmpty || phone.isEmpty || password.length < 8) {
+    if (username.isEmpty || phone.isEmpty) {
+      setState(() => _localError = 'Username and phone number are required.');
       return;
     }
+    if (password.length < 8) {
+      setState(() => _localError = 'Password must be at least 8 characters.');
+      return;
+    }
+    setState(() => _localError = null);
     await ref.read(authControllerProvider.notifier).register(
       username: username,
       password: password,
@@ -98,7 +105,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 for (final role in const [
                   ('BUYER', 'Buyer'),
                   ('SELLER', 'Seller'),
-                  ('MERCHANT', 'Merchant'),
                 ])
                   ChoiceChip(
                     label: Text(role.$2),
@@ -123,10 +129,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               ),
             ),
-            if (auth.error != null) ...[
+            if (auth.error != null || _localError != null) ...[
               const SizedBox(height: 16),
               Text(
-                auth.error!,
+                auth.error ?? _localError!,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
