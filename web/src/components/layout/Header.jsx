@@ -20,8 +20,22 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+const [profileMenu, setProfileMenu] = useState({
+  path: null,
+  open: false,
+});
+
+const [notificationsMenu, setNotificationsMenu] = useState({
+  path: null,
+  open: false,
+});
+
+const profileOpen =
+  profileMenu.path === location.pathname && profileMenu.open;
+
+const notificationsOpen =
+  notificationsMenu.path === location.pathname &&
+  notificationsMenu.open;
 
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
@@ -32,52 +46,49 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
   /*
    * Close dropdowns when clicking outside.
    */
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target)
-      ) {
-        setProfileOpen(false);
-      }
+const pathname = location.pathname;
 
-      if (
-        notificationRef.current &&
-        !notificationRef.current.contains(event.target)
-      ) {
-        setNotificationsOpen(false);
-      }
-    };
+useEffect(() => {
+  const handleOutsideClick = (event) => {
+    if (
+      profileRef.current &&
+      !profileRef.current.contains(event.target)
+    ) {
+      setProfileMenu({
+        path: pathname,
+        open: false,
+      });
+    }
 
-    document.addEventListener("mousedown", handleOutsideClick);
+    if (
+      notificationRef.current &&
+      !notificationRef.current.contains(event.target)
+    ) {
+      setNotificationsMenu({
+        path: pathname,
+        open: false,
+      });
+    }
+  };
 
-    return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleOutsideClick
-      );
-    };
-  }, []);
+  document.addEventListener("mousedown", handleOutsideClick);
 
-  /*
-   * Close dropdowns when route changes.
-   */
-  useEffect(() => {
-    setProfileOpen(false);
-    setNotificationsOpen(false);
-  }, [location.pathname]);
+  return () => {
+    document.removeEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
+  };
+}, [pathname]);
+
+
 
   const handleLogout = () => {
-    /*
-     * TODO:
-     * Connect this to the Django authentication API.
-     *
-     * Example later:
-     * await logoutApi();
-     * navigate("/login");
-     */
 
-    setProfileOpen(false);
+    setProfileMenu({
+  path: location.pathname,
+  open: false,
+});
 
     console.log("Logout clicked");
 
@@ -252,9 +263,12 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
         >
           <button
             type="button"
-            onClick={() =>
-              setNotificationsOpen(!notificationsOpen)
-            }
+           onClick={() =>
+  setNotificationsMenu({
+    path: location.pathname,
+    open: !notificationsOpen,
+  })
+}
             className="header__icon-button header__notification"
             aria-label="Notifications"
             aria-expanded={notificationsOpen}
@@ -355,9 +369,12 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
         >
           <button
             type="button"
-            onClick={() =>
-              setProfileOpen(!profileOpen)
-            }
+           onClick={() =>
+  setProfileMenu({
+    path: location.pathname,
+    open: !profileOpen,
+  })
+}
             className={`header__profile ${
               profileOpen
                 ? "header__profile--open"
@@ -416,16 +433,19 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
             </svg>
           </button>
 
-          {profileOpen && (
+          {profileMenu && (
             <div className="header__profile-menu">
               {/* Profile */}
               <button
                 type="button"
                 className="header__profile-menu-item"
-                onClick={() => {
-                  setProfileOpen(false);
-                  navigate("/profile");
-                }}
+               onClick={() => {
+  setProfileMenu({
+    path: location.pathname,
+    open: false,
+  });
+  navigate("/profile");
+}}
               >
                 <span className="header__menu-item-icon">
                   <svg
