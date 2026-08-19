@@ -109,6 +109,22 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  Future<void> refreshUser() async {
+    final session = state.session;
+    if (session == null) {
+      return;
+    }
+    try {
+      final user = await _api.me(session.token);
+      final next = AuthSession(token: session.token, user: user);
+      await _store.save(next);
+      if (!_alive) {
+        return;
+      }
+      state = AuthState(status: AuthStatus.signedIn, session: next);
+    } catch (_) {}
+  }
+
   Future<void> _authenticate(Future<AuthSession> Function() action) async {
     state = state.copyWith(busy: true, clearError: true);
     try {
