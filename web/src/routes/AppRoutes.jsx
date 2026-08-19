@@ -8,6 +8,7 @@ import TransactionTracking from '../pages/TransactionTracking'
 import Checkout from '../pages/Checkout'
 import Payment from '../pages/Payment'
 import PaymentSuccess from '../pages/PaymentSuccess'
+import MerchantDashboard from '../pages/MerchantDashboard'
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -41,10 +42,7 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <DashboardLayout>
-            <PlaceholderPage
-              title="Dashboard"
-              description="The dashboard will be implemented by the escrow pipeline team."
-            />
+            <MerchantDashboard />
           </DashboardLayout>
         }
       />
