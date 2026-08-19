@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     # Third-party applications
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
 
     # Local applications
     'core.apps.CoreConfig',
@@ -66,6 +67,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -147,6 +149,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+# Flutter web (Chrome) on this machine.
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOW_HEADERS = (
+    'accept',
+    'authorization',
+    'content-type',
+)
 
 
 # CHAPA CONFIGURATION

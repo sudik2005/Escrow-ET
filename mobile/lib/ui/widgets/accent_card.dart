@@ -27,21 +27,39 @@ class AccentCard extends StatelessWidget {
         ? brand.withValues(alpha: dark ? 0.18 : 0.08)
         : (dark ? AppColors.darkSurface : AppColors.snow);
 
-    final card = DecoratedBox(
-      decoration: BoxDecoration(
-        color: fill,
-        borderRadius: BorderRadius.circular(12),
-        border: Border(
-          top: BorderSide(color: alert ? brand.withValues(alpha: 0.45) : border),
-          right: BorderSide(color: alert ? brand.withValues(alpha: 0.45) : border),
-          bottom: BorderSide(color: alert ? brand.withValues(alpha: 0.45) : border),
-          left: BorderSide(
-            color: stripe ? brand : (alert ? brand.withValues(alpha: 0.45) : border),
-            width: stripe ? (dark ? 2 : 3) : 1,
-          ),
+    // Web cannot paint borderRadius with mixed BorderSide colors. Stripe is a
+    // separate bar so the outline stays uniform.
+    final edge = alert ? brand.withValues(alpha: 0.45) : border;
+    final stripeW = dark ? 2.0 : 3.0;
+
+    final card = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: fill,
+          border: Border.all(color: edge),
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: stripe
+                  ? padding.copyWith(left: padding.left + stripeW)
+                  : padding,
+              child: child,
+            ),
+            if (stripe)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: ColoredBox(
+                  color: brand,
+                  child: SizedBox(width: stripeW),
+                ),
+              ),
+          ],
         ),
       ),
-      child: Padding(padding: padding, child: child),
     );
 
     if (onTap == null) {
