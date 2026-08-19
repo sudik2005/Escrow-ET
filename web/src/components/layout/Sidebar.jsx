@@ -1,40 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
+import logoImage from '../../assets/logo.png';
 
 /* =========================================================
-   Brand Mark
+   Icon
 ========================================================= */
 
-const BrandMark = () => (
-  <svg
-    width="32"
-    height="32"
-    viewBox="0 0 32 32"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
+const Icon = ({ children, className = '' }) => (
+  <span
+    className={`material-symbols-outlined sidebar__material-icon ${className}`}
     aria-hidden="true"
   >
-    <rect
-      x="4"
-      y="4"
-      width="24"
-      height="24"
-      rx="6"
-      fill="var(--brand)"
-      opacity="0.15"
-    />
-
-    <path
-      d="M16 8L22 12V18C22 22 16 26 16 26C16 26 10 22 10 18V12L16 8Z"
-      fill="var(--brand)"
-    />
-
-    <path
-      d="M16 11L19 13V17C19 19.5 16 21.5 16 21.5C16 21.5 13 19.5 13 17V13L16 11Z"
-      fill="white"
-    />
-  </svg>
+    {children}
+  </span>
 );
 
 /* =========================================================
@@ -45,23 +24,23 @@ const navigationItems = [
   {
     to: '/dashboard',
     label: 'Dashboard',
-    icon: '⌂',
+    icon: 'dashboard',
     end: true,
   },
   {
     to: '/transactions',
     label: 'Transactions',
-    icon: '⟳',
+    icon: 'receipt_long',
   },
   {
     to: '/payment-links',
     label: 'Payment Links',
-    icon: '⊕',
+    icon: 'link',
   },
   {
     to: '/disputes',
     label: 'Disputes',
-    icon: '⚖',
+    icon: 'gavel',
   },
 ];
 
@@ -69,12 +48,12 @@ const settingsItems = [
   {
     to: '/settings/developer',
     label: 'Developer Settings',
-    icon: '⚙',
+    icon: 'code',
   },
   {
     to: '/docs',
     label: 'API Docs',
-    icon: '▤',
+    icon: 'menu_book',
   },
 ];
 
@@ -143,12 +122,6 @@ const Sidebar = ({ isOpen = true, onClose }) => {
 
   /* ---------------------------------------------------------
      Navigation behavior
-
-     On mobile/tablet:
-     selecting a page closes the sidebar.
-
-     On desktop:
-     the sidebar remains open.
   --------------------------------------------------------- */
 
   const handleNavigation = () => {
@@ -158,7 +131,7 @@ const Sidebar = ({ isOpen = true, onClose }) => {
   };
 
   /* ---------------------------------------------------------
-     Render navigation link
+     Navigation link
   --------------------------------------------------------- */
 
   const renderNavigationItem = (item) => (
@@ -170,19 +143,14 @@ const Sidebar = ({ isOpen = true, onClose }) => {
       className={({ isActive }) =>
         [
           'sidebar__nav-link',
-          isActive
-            ? 'sidebar__nav-link--active'
-            : '',
+          isActive ? 'sidebar__nav-link--active' : '',
         ]
           .filter(Boolean)
           .join(' ')
       }
     >
-      <span
-        className="sidebar__nav-icon"
-        aria-hidden="true"
-      >
-        {item.icon}
+      <span className="sidebar__nav-icon">
+        <Icon>{item.icon}</Icon>
       </span>
 
       <span className="sidebar__nav-label">
@@ -192,86 +160,114 @@ const Sidebar = ({ isOpen = true, onClose }) => {
   );
 
   return (
-    <aside
-      ref={sidebarRef}
-      className={[
-        'sidebar',
-        isOpen
-          ? 'sidebar--open'
-          : 'sidebar--closed',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      aria-label="Application sidebar"
-      aria-hidden={!isOpen}
-    >
+    <>
       {/* =====================================================
-          Brand
-      ===================================================== */}
+          MOBILE OVERLAY
+      ====================================================== */}
 
-      <div className="sidebar__brand">
-        <div className="sidebar__brand-icon">
-          <BrandMark />
-        </div>
-
-        <div className="sidebar__brand-text">
-          <span className="sidebar__brand-name">
-            Escrow ET
-          </span>
-
-          <span className="sidebar__brand-sub">
-            Merchant Portal
-          </span>
-        </div>
-      </div>
+      {isOpen && (
+        <button
+          type="button"
+          className="sidebar__overlay"
+          aria-label="Close navigation"
+          onClick={onClose}
+        />
+      )}
 
       {/* =====================================================
-          Main Navigation
-      ===================================================== */}
+          SIDEBAR
+      ====================================================== */}
 
-      <nav
-        className="sidebar__nav"
-        aria-label="Main navigation"
+      <aside
+        ref={sidebarRef}
+        className={[
+          'sidebar',
+          isOpen
+            ? 'sidebar--open'
+            : 'sidebar--closed',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        aria-label="Application sidebar"
+        aria-hidden={!isOpen}
       >
-        {navigationItems.map(renderNavigationItem)}
-      </nav>
+        {/* ===================================================
+            BRAND
+        ==================================================== */}
 
-      {/* =====================================================
-          Bottom Navigation
-      ===================================================== */}
+        <div className="sidebar__brand">
+          <div className="sidebar__brand-icon">
+            <img
+              src={logoImage}
+              alt="Escrow ET logo"
+              className="sidebar__logo"
+            />
+          </div>
 
-      <div className="sidebar__bottom">
-        {settingsItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            onClick={handleNavigation}
-            className={({ isActive }) =>
-              [
-                'sidebar__nav-link',
-                'sidebar__nav-link--bottom',
-                isActive
-                  ? 'sidebar__nav-link--active'
-                  : '',
-              ]
-                .filter(Boolean)
-                .join(' ')
-            }
+          <div className="sidebar__brand-text">
+            <span className="sidebar__brand-name">
+              Escrow ET
+            </span>
+
+            <span className="sidebar__brand-sub">
+              Merchant Portal
+            </span>
+          </div>
+        </div>
+
+        {/* ===================================================
+            MAIN NAVIGATION
+        ==================================================== */}
+
+        <div className="sidebar__navigation-area">
+          <p className="sidebar__section-label">
+            Main Menu
+          </p>
+
+          <nav
+            className="sidebar__nav"
+            aria-label="Main navigation"
           >
-            <span
-              className="sidebar__nav-icon"
-              aria-hidden="true"
-            >
-              {item.icon}
+            {navigationItems.map(renderNavigationItem)}
+          </nav>
+        </div>
+
+        {/* ===================================================
+            BOTTOM NAVIGATION
+        ==================================================== */}
+
+        <div className="sidebar__bottom">
+          <p className="sidebar__section-label">
+            Resources
+          </p>
+
+          <nav
+            className="sidebar__nav sidebar__nav--bottom"
+            aria-label="Settings and resources"
+          >
+            {settingsItems.map(renderNavigationItem)}
+          </nav>
+        </div>
+
+        {/* ===================================================
+            SYSTEM STATUS
+        ==================================================== */}
+
+        <div className="sidebar__status">
+          <span className="sidebar__status-dot" />
+
+          <div className="sidebar__status-content">
+            <span className="sidebar__status-title">
+              System operational
             </span>
 
-            <span className="sidebar__nav-label">
-              {item.label}
+            <span className="sidebar__status-text">
+              Escrow ET is running normally
             </span>
-          </NavLink>
-        ))}
-      </div>
-    </aside>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 };
 

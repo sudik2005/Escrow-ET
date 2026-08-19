@@ -1,8 +1,23 @@
-/* web/src/components/layout/Sidebar.css */
+/* =========================================================
+   Escrow ET — Modern Sidebar
+   Location:
+   web/src/components/layout/Sidebar.css
+========================================================= */
 
 :root {
   --sidebar-width: 248px;
+  --sidebar-mobile-width: min(292px, 88vw);
+
+  --sidebar-radius: 10px;
+  --sidebar-icon-size: 20px;
+
+  --sidebar-transition:
+    transform 0.25s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
+
 
 /* =========================================================
    SIDEBAR
@@ -10,8 +25,11 @@
 
 .sidebar {
   position: fixed;
+
   top: 0;
   left: 0;
+
+  z-index: 50;
 
   width: var(--sidebar-width);
   height: 100vh;
@@ -19,25 +37,25 @@
   display: flex;
   flex-direction: column;
 
-  padding: 0 18px;
+  box-sizing: border-box;
+
+  padding: 0 14px;
 
   background: var(--surface);
   color: var(--text-h);
 
   border-right: 1px solid var(--border);
+
   box-shadow: var(--shadow-md);
 
-  z-index: 50;
-
+  overflow-x: hidden;
   overflow-y: auto;
+
   overscroll-behavior: contain;
 
-  transition:
-    transform 0.25s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: var(--sidebar-transition);
 }
+
 
 /* =========================================================
    SCROLLBAR
@@ -47,32 +65,75 @@
   width: 4px;
 }
 
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .sidebar::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 999px;
 }
 
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--text);
 }
+
+
+/* =========================================================
+   MOBILE OVERLAY
+========================================================= */
+
+.sidebar__overlay {
+  display: none;
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 40;
+
+  width: 100%;
+  height: 100%;
+
+  padding: 0;
+
+  border: 0;
+
+  background: rgba(0, 0, 0, 0.38);
+
+  backdrop-filter: blur(2px);
+}
+
 
 /* =========================================================
    BRAND
 ========================================================= */
 
 .sidebar__brand {
+  min-height: 64px;
+
   display: flex;
   align-items: center;
-  gap: 12px;
 
-  padding: 23px 4px 22px;
+  gap: 11px;
+
+  padding: 0 5px;
 
   border-bottom: 1px solid var(--border);
+
+  flex-shrink: 0;
 }
 
+
+/* =========================================================
+   LOGO CONTAINER
+========================================================= */
+
 .sidebar__brand-icon {
-  width: 38px;
-  height: 38px;
+  position: relative;
+
+  width: 40px;
+  height: 40px;
 
   flex-shrink: 0;
 
@@ -80,27 +141,51 @@
   align-items: center;
   justify-content: center;
 
-  background: var(--brand);
-  color: #fff;
+  overflow: hidden;
 
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  border-radius: 11px;
 
-  font-size: 18px;
-  font-weight: var(--font-weight-bold);
+  background: var(--surface-hover);
 
-  box-shadow: var(--shadow);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.05);
 
   transition:
-    background-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .sidebar__brand-icon:hover {
-  background: var(--brand-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+
+  border-color: var(--brand);
+
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, 0.08);
 }
+
+
+/* =========================================================
+   LOGO IMAGE
+========================================================= */
+
+.sidebar__logo {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  border-radius: 10px;
+}
+
+
+/* =========================================================
+   BRAND TEXT
+========================================================= */
 
 .sidebar__brand-text {
   min-width: 0;
@@ -108,16 +193,19 @@
   display: flex;
   flex-direction: column;
 
+  justify-content: center;
+
   line-height: 1.2;
 }
 
 .sidebar__brand-name {
   color: var(--text-h);
 
-  font-size: 17px;
-  font-weight: var(--font-weight-bold);
+  font-size: 16px;
+  font-weight: 700;
 
   letter-spacing: -0.35px;
+
   white-space: nowrap;
 }
 
@@ -126,47 +214,84 @@
 
   color: var(--text);
 
-  font-size: 10px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: 600;
 
-  letter-spacing: 1px;
+  letter-spacing: 0.9px;
+
   text-transform: uppercase;
 
   white-space: nowrap;
+
+  opacity: 0.72;
 }
 
-.sidebar__brand-accent {
-  color: var(--brand);
+
+/* =========================================================
+   NAVIGATION AREA
+========================================================= */
+
+.sidebar__navigation-area {
+  flex: 1;
+
+  padding-top: 20px;
 }
+
+
+/* =========================================================
+   SECTION LABEL
+========================================================= */
+
+.sidebar__section-label {
+  margin: 0 10px 8px;
+
+  color: var(--text);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 1.1px;
+
+  line-height: 1;
+
+  text-transform: uppercase;
+
+  opacity: 0.55;
+}
+
 
 /* =========================================================
    NAVIGATION
 ========================================================= */
 
 .sidebar__nav {
-  flex: 1;
-
   display: flex;
   flex-direction: column;
 
-  padding: 24px 0;
-  gap: 5px;
+  gap: 4px;
 }
+
+
+/* =========================================================
+   NAVIGATION LINK
+========================================================= */
 
 .sidebar__nav-link {
   position: relative;
 
+  min-height: 42px;
+
   display: flex;
   align-items: center;
 
-  gap: 13px;
+  gap: 11px;
 
-  min-height: 43px;
+  box-sizing: border-box;
 
-  padding: 0 13px;
+  padding: 0 11px;
 
   border: 1px solid transparent;
-  border-radius: var(--radius);
+  border-radius: var(--sidebar-radius);
 
   background: transparent;
 
@@ -174,128 +299,265 @@
 
   text-decoration: none;
 
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
+  font-size: 13px;
+  font-weight: 500;
 
   cursor: pointer;
 
   transition:
     background-color 0.16s ease,
-    color 0.16s ease,
     border-color 0.16s ease,
-    transform 0.16s ease;
+    color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
-/* Hover */
 
-.sidebar__nav-link:hover:not(.sidebar__nav-link--active) {
+/* =========================================================
+   HOVER
+========================================================= */
+
+.sidebar__nav-link:hover:not(
+  .sidebar__nav-link--active
+) {
   background: var(--surface-hover);
+
   border-color: var(--border);
+
   color: var(--text-h);
 
-  transform: translateX(1px);
+  transform: translateX(2px);
 }
 
-/* Active */
+
+/* =========================================================
+   ACTIVE
+========================================================= */
 
 .sidebar__nav-link--active {
-  background: var(--surface-active, var(--surface-hover));
+  background:
+    color-mix(
+      in srgb,
+      var(--brand) 8%,
+      var(--surface)
+    );
 
-  border-color: var(--brand);
+  border-color:
+    color-mix(
+      in srgb,
+      var(--brand) 24%,
+      var(--border)
+    );
 
   color: var(--brand);
 
-  font-weight: var(--font-weight-semibold);
+  font-weight: 600;
+
+  box-shadow:
+    0 2px 7px
+      color-mix(
+        in srgb,
+        var(--brand) 8%,
+        transparent
+      );
 }
 
-/* Active red indicator */
+
+/* =========================================================
+   ACTIVE INDICATOR
+========================================================= */
 
 .sidebar__nav-link--active::before {
   content: '';
 
   position: absolute;
 
-  left: -18px;
-  top: 7px;
-  bottom: 7px;
+  left: -14px;
+
+  top: 8px;
+  bottom: 8px;
 
   width: 3px;
 
+  border-radius:
+    0 4px 4px 0;
+
   background: var(--brand);
 
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-
-  box-shadow: 0 0 8px rgba(192, 0, 0, 0.25);
+  box-shadow:
+    0 0 8px
+      color-mix(
+        in srgb,
+        var(--brand) 35%,
+        transparent
+      );
 }
 
-/* Icon */
+
+/* =========================================================
+   ICON CONTAINER
+========================================================= */
 
 .sidebar__nav-icon {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
 
   flex-shrink: 0;
 
   display: inline-flex;
+
   align-items: center;
   justify-content: center;
 
+  border-radius: 8px;
+
   color: currentColor;
 
-  font-size: 16px;
-
-  opacity: 0.7;
+  background: transparent;
 
   transition:
+    background-color 0.16s ease,
     color 0.16s ease,
-    opacity 0.16s ease;
+    transform 0.16s ease;
 }
 
-.sidebar__nav-link:hover .sidebar__nav-icon {
-  opacity: 0.9;
+
+/* =========================================================
+   MATERIAL ICON
+========================================================= */
+
+.sidebar__material-icon {
+  font-size: 20px;
+
+  line-height: 1;
+
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 20;
+
+  transition:
+    transform 0.16s ease,
+    font-variation-settings 0.16s ease;
 }
 
-.sidebar__nav-link--active .sidebar__nav-icon {
+
+/* =========================================================
+   ICON HOVER
+========================================================= */
+
+.sidebar__nav-link:hover
+.sidebar__nav-icon {
+  background: var(--surface-active, var(--surface-hover));
+}
+
+.sidebar__nav-link:hover
+.sidebar__material-icon {
+  transform: scale(1.06);
+}
+
+
+/* =========================================================
+   ACTIVE ICON
+========================================================= */
+
+.sidebar__nav-link--active
+.sidebar__nav-icon {
+  background:
+    color-mix(
+      in srgb,
+      var(--brand) 11%,
+      transparent
+    );
+
   color: var(--brand);
-  opacity: 1;
 }
 
-/* Focus */
+.sidebar__nav-link--active
+.sidebar__material-icon {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 600,
+    'GRAD' 0,
+    'opsz' 20;
+}
+
+
+/* =========================================================
+   LABEL
+========================================================= */
+
+.sidebar__nav-label {
+  min-width: 0;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   FOCUS
+========================================================= */
 
 .sidebar__nav-link:focus-visible {
   outline: 2px solid var(--brand);
+
   outline-offset: 2px;
 }
+
 
 /* =========================================================
    BOTTOM SECTION
 ========================================================= */
 
 .sidebar__bottom {
-  padding-top: 17px;
-  padding-bottom: 20px;
+  flex-shrink: 0;
+
+  padding: 17px 0 15px;
 
   border-top: 1px solid var(--border);
 }
 
-.sidebar__nav-link--bottom {
-  margin-top: 5px;
+.sidebar__nav--bottom {
+  gap: 4px;
 }
 
+
 /* =========================================================
-   FOOTER / SYSTEM STATUS
+   SYSTEM STATUS
 ========================================================= */
 
-.sidebar__footer {
+.sidebar__status {
+  min-height: 58px;
+
   display: flex;
   align-items: center;
 
   gap: 10px;
 
-  padding: 15px 4px;
+  margin: 0 3px 13px;
 
-  border-top: 1px solid var(--border);
+  padding: 10px 10px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--border);
+
+  border-radius: 10px;
+
+  background: var(--surface-hover);
+
+  flex-shrink: 0;
 }
+
+
+/* =========================================================
+   STATUS DOT
+========================================================= */
 
 .sidebar__status-dot {
   width: 7px;
@@ -305,73 +567,161 @@
 
   border-radius: 50%;
 
-  background: var(--success);
+  background: var(--success, #16a34a);
 
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+  box-shadow:
+    0 0 0 4px
+      color-mix(
+        in srgb,
+        var(--success, #16a34a) 12%,
+        transparent
+      );
+}
+
+
+/* =========================================================
+   STATUS CONTENT
+========================================================= */
+
+.sidebar__status-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar__status-title {
-  display: block;
-
   color: var(--text-h);
 
-  font-size: 11px;
-  font-weight: var(--font-weight-semibold);
+  font-size: 10px;
+  font-weight: 600;
+
+  white-space: nowrap;
 }
 
 .sidebar__status-text {
-  display: block;
-
   margin-top: 2px;
 
   color: var(--text);
 
-  font-size: 10px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: 400;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  opacity: 0.68;
 }
 
+
 /* =========================================================
-   RESPONSIVE
+   DESKTOP
+========================================================= */
+
+@media (min-width: 1025px) {
+  .sidebar {
+    transform: translateX(0);
+  }
+}
+
+
+/* =========================================================
+   TABLET
 ========================================================= */
 
 @media (max-width: 1024px) {
-  .sidebar--closed {
+  .sidebar {
+    width: var(--sidebar-mobile-width);
+
     transform: translateX(-100%);
+
+    box-shadow: none;
   }
 
   .sidebar--open {
     transform: translateX(0);
-    box-shadow: var(--shadow-lg);
+
+    box-shadow:
+      12px 0 40px rgba(0, 0, 0, 0.16);
+  }
+
+  .sidebar__overlay {
+    display: block;
   }
 }
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 768px) {
   .sidebar {
-    width: min(280px, 86vw);
-
-    padding-left: 16px;
-    padding-right: 16px;
+    padding: 0 13px;
   }
 
   .sidebar__brand {
-    padding-top: 20px;
-    padding-bottom: 20px;
+    min-height: 68px;
   }
 
-  .sidebar__nav {
-    padding-top: 20px;
+  .sidebar__brand-icon {
+    width: 38px;
+    height: 38px;
   }
 
-  .sidebar__nav-link--active::before {
-    left: -16px;
+  .sidebar__brand-name {
+    font-size: 15px;
+  }
+
+  .sidebar__nav-link {
+    min-height: 43px;
+
+    font-size: 13px;
+  }
+
+  .sidebar__nav-icon {
+    width: 30px;
+    height: 30px;
   }
 }
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: min(280px, 88vw);
+  }
+
+  .sidebar__brand {
+    min-height: 64px;
+  }
+
+  .sidebar__navigation-area {
+    padding-top: 17px;
+  }
+
+  .sidebar__status {
+    margin-bottom: 10px;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .sidebar,
   .sidebar__brand-icon,
   .sidebar__nav-link,
-  .sidebar__nav-icon {
+  .sidebar__nav-icon,
+  .sidebar__material-icon {
     transition: none;
   }
 }
