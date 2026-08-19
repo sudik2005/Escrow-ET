@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show HttpException, Platform, SocketException;
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'api_exception.dart';
@@ -18,6 +19,9 @@ class ApiClient {
     const fromDefine = String.fromEnvironment('API_BASE_URL');
     if (fromDefine.isNotEmpty) {
       return fromDefine;
+    }
+    if (kIsWeb) {
+      return 'http://127.0.0.1:8000/api';
     }
     if (Platform.isAndroid) {
       return 'http://10.0.2.2:8000/api';
@@ -97,8 +101,17 @@ class ApiClient {
       throw const ApiException('The server took too long to respond.');
     } on HttpException {
       throw const ApiException('Cannot reach the server.');
-    } on FormatException {
-      throw const ApiException('The server sent a bad response.');
+    } on http.ClientException {
+      throw const ApiException(
+        'Cannot reach the server. Start Django, then check API_BASE_URL.',
+      );
+    } catch (error) {
+      if (error is ApiException) {
+        rethrow;
+      }
+      throw const ApiException(
+        'Cannot reach the server. Start Django, then check API_BASE_URL.',
+      );
     }
 
     Object? decoded;
