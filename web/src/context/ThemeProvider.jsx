@@ -1,43 +1,48 @@
-import { useEffect, useState } from 'react'
-import ThemeContext from './ThemeContext'
+import {
+  useEffect,
+  useState,
+} from 'react';
 
-const THEME_STORAGE_KEY = 'escrow-theme'
+import ThemeContext from './ThemeContext';
+
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') {
-      return 'light'
-    }
+    return localStorage.getItem('theme') || 'light';
+  });
 
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY)
-
-    return savedTheme === 'dark' ? 'dark' : 'light'
-  })
 
   useEffect(() => {
-    const root = document.documentElement
+    document.documentElement.setAttribute(
+      'data-theme',
+      theme,
+    );
 
-    root.setAttribute('data-theme', theme)
+    localStorage.setItem(
+      'theme',
+      theme,
+    );
+  }, [theme]);
 
-    root.style.colorScheme = theme
-
-    localStorage.setItem(THEME_STORAGE_KEY, theme)
-  }, [theme])
 
   const toggleTheme = () => {
     setTheme((currentTheme) =>
-      currentTheme === 'light' ? 'dark' : 'light',
-    )
-  }
+      currentTheme === 'dark'
+        ? 'light'
+        : 'dark',
+    );
+  };
 
-  const value = {
-    theme,
-    toggleTheme,
-  }
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        setTheme,
+        toggleTheme,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
-  )
+  );
 }

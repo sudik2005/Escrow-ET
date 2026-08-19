@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import PageCard from '../components/ui/PageCard';
@@ -10,13 +10,13 @@ import {
 } from '../lib/merchantKeys';
 
 export default function DeveloperSettings() {
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState(() =>
+  loadOrCreateDeveloperSettings(),
+);
   const [revealed, setRevealed] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    setSettings(loadOrCreateDeveloperSettings());
-  }, []);
+ 
 
   if (!settings) {
     return null;
