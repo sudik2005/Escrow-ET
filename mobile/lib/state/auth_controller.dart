@@ -67,10 +67,28 @@ class AuthController extends Notifier<AuthState> {
     if (!_alive) {
       return;
     }
-    state = AuthState(
-      status: session == null ? AuthStatus.signedOut : AuthStatus.signedIn,
-      session: session,
-    );
+    if (session == null) {
+      state = const AuthState(status: AuthStatus.signedOut);
+      return;
+    }
+    state = AuthState(status: AuthStatus.signedIn, session: session);
+    try {
+      final user = await _api.me(session.token);
+      final next = AuthSession(token: session.token, user: user);
+      await _store.save(next);
+      if (!_alive) {
+        return;
+      }
+      state = AuthState(status: AuthStatus.signedIn, session: next);
+    } on ApiException catch (error) {
+      if (error.statusCode == 401) {
+        await _store.clear();
+        if (!_alive) {
+          return;
+        }
+        state = const AuthState(status: AuthStatus.signedOut);
+      }
+    } catch (_) {}
   }
 
   Future<void> login({
@@ -101,6 +119,7 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
+    ref.read(shellTabProvider.notifier).state = 0;
     final token = state.session?.token;
     state = const AuthState(status: AuthStatus.signedOut);
     await _store.clear();
@@ -122,6 +141,14 @@ class AuthController extends Notifier<AuthState> {
         return;
       }
       state = AuthState(status: AuthStatus.signedIn, session: next);
+    } on ApiException catch (error) {
+      if (error.statusCode == 401) {
+        await _store.clear();
+        if (!_alive) {
+          return;
+        }
+        state = const AuthState(status: AuthStatus.signedOut);
+      }
     } catch (_) {}
   }
 
@@ -183,3 +210,5 @@ class ThemeController extends Notifier<bool> {
 final themeControllerProvider = NotifierProvider<ThemeController, bool>(
   ThemeController.new,
 );
+
+final shellTabProvider = StateProvider<int>((ref) => 0);

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/escrow_controller.dart';
 import '../widgets/accent_card.dart';
 import '../widgets/app_header.dart';
+import '../widgets/list_error.dart';
 import '../widgets/status_chip.dart';
 import 'tracking_detail_screen.dart';
 
@@ -20,7 +21,10 @@ class TrackingListScreen extends ConsumerWidget {
         Expanded(
           child: list.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(child: Text(error.toString())),
+            error: (error, _) => ListError(
+              message: error.toString(),
+              onRetry: () => ref.invalidate(escrowListProvider),
+            ),
             data: (contracts) {
               if (contracts.isEmpty) {
                 return const Center(child: Text('Nothing to track yet.'));
@@ -31,7 +35,7 @@ class TrackingListScreen extends ConsumerWidget {
                   await ref.read(escrowListProvider.future);
                 },
                 child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                   itemCount: contracts.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {

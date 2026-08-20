@@ -15,7 +15,7 @@ class PaymentSuccessScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
           children: [
             const AppHeader(title: 'Payments'),
             const SizedBox(height: 24),

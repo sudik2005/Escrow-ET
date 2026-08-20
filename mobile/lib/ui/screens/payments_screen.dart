@@ -6,6 +6,7 @@ import '../../state/escrow_controller.dart';
 import '../widgets/accent_card.dart';
 import '../widgets/app_controls.dart';
 import '../widgets/app_header.dart';
+import '../widgets/list_error.dart';
 import '../widgets/status_chip.dart';
 import 'checkout_screen.dart';
 import 'new_payment_screen.dart';
@@ -25,7 +26,10 @@ class PaymentsScreen extends ConsumerWidget {
         Expanded(
           child: list.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(child: Text(error.toString())),
+            error: (error, _) => ListError(
+              message: error.toString(),
+              onRetry: () => ref.invalidate(escrowListProvider),
+            ),
             data: (contracts) {
               final pending = contracts.where((c) => c.isPendingPayment).toList();
               final others = contracts.where((c) => !c.isPendingPayment).toList();
@@ -35,7 +39,7 @@ class PaymentsScreen extends ConsumerWidget {
                   await ref.read(escrowListProvider.future);
                 },
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                   children: [
                     if (seller) ...[
                       AppButton(

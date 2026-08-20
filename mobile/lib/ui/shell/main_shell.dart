@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../state/auth_controller.dart';
 import '../screens/dashboard_screen.dart';
+import '../screens/notifications_screen.dart';
 import '../screens/payments_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/tracking_list_screen.dart';
 
-class MainShell extends StatefulWidget {
+class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final index = ref.watch(shellTabProvider);
 
-class _MainShellState extends State<MainShell> {
-  var _index = 0;
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: IndexedStack(
-          index: _index,
+          index: index,
           children: const [
             DashboardScreen(),
+            NotificationsScreen(),
             PaymentsScreen(),
             TrackingListScreen(),
             SettingsScreen(),
@@ -30,22 +29,27 @@ class _MainShellState extends State<MainShell> {
         ),
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (value) => setState(() => _index = value),
+        selectedIndex: index,
+        onDestinationSelected: (value) => ref.read(shellTabProvider.notifier).state = value,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view),
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
           NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
+            icon: Icon(Icons.notifications_outlined),
+            selectedIcon: Icon(Icons.notifications),
+            label: 'Alerts',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.payments_outlined),
+            selectedIcon: Icon(Icons.payments),
             label: 'Payments',
           ),
           NavigationDestination(
-            icon: Icon(Icons.show_chart_outlined),
-            selectedIcon: Icon(Icons.show_chart),
+            icon: Icon(Icons.monitor_heart_outlined),
+            selectedIcon: Icon(Icons.monitor_heart),
             label: 'Tracking',
           ),
           NavigationDestination(
