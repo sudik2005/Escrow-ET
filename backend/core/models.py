@@ -71,7 +71,15 @@ class EscrowContract(models.Model):
                 condition=models.Q(amount__gt=0),
                 name="escrow_amount_positive",
             ),
+            models.CheckConstraint(
+                condition=~models.Q(buyer=models.F("seller")),
+                name="escrow_buyer_ne_seller",
+            ),
         ]
+
+    def clean(self) -> None:
+        if self.buyer_id and self.seller_id and self.buyer_id == self.seller_id:
+            raise ValidationError("Buyer and seller must be different users.")
 
     def set_verification_pin(self, raw_pin: str) -> None:
         self.verification_pin = make_password(raw_pin)
@@ -190,6 +198,14 @@ class LedgerTransaction(models.Model):
     )
     memo = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["escrow_contract", "transaction_type"],
+                name="uniq_ledger_txn_per_escrow_type",
+            ),
+        ]
 
     def assert_balanced(self) -> None:
         totals = self.entries.aggregate(

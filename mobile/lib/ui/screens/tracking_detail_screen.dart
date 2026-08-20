@@ -121,7 +121,7 @@ class _TrackingDetailScreenState extends ConsumerState<TrackingDetailScreen> {
         onRefresh: _refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
           children: [
             Center(
               child: Column(

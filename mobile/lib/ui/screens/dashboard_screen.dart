@@ -45,7 +45,7 @@ class DashboardScreen extends ConsumerWidget {
                   await ref.read(escrowListProvider.future);
                 },
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                   children: [
                     Text(
                       'Overview',

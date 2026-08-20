@@ -92,41 +92,46 @@ abstract final class AppTheme {
         filled: true,
         fillColor: input,
         hintStyle: TextStyle(color: muted.withValues(alpha: 0.7), fontSize: 14),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius),
+          borderRadius: BorderRadius.circular(cardRadius),
           borderSide: BorderSide(color: border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius),
+          borderRadius: BorderRadius.circular(cardRadius),
           borderSide: BorderSide(color: border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius),
+          borderRadius: BorderRadius.circular(cardRadius),
           borderSide: BorderSide(color: brand, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radius),
+          borderRadius: BorderRadius.circular(cardRadius),
           borderSide: BorderSide(color: brand),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: surface,
-        indicatorColor: brand.withValues(alpha: 0.12),
+        backgroundColor: brightness == Brightness.dark
+            ? AppColors.darkContainer.withValues(alpha: 0.94)
+            : AppColors.snow,
+        indicatorColor: Colors.transparent,
         elevation: 0,
-        height: 72,
+        height: 64,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return GoogleFonts.geist(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.05 * 11,
-            color: selected ? brand : navUnselected,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            letterSpacing: 0.4,
+            color: selected ? AppColors.crimson : navUnselected,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return IconThemeData(color: selected ? brand : navUnselected, size: 22);
+          return IconThemeData(
+            color: selected ? AppColors.crimson : navUnselected,
+            size: 22,
+          );
         }),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -134,22 +139,26 @@ abstract final class AppTheme {
           backgroundColor: brand,
           foregroundColor: AppColors.snow,
           disabledBackgroundColor: brand.withValues(alpha: 0.55),
-          minimumSize: const Size.fromHeight(48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cardRadius)),
           textStyle: GoogleFonts.geist(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.04,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.2,
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: textH,
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size.fromHeight(56),
           side: BorderSide(color: border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
-          textStyle: GoogleFonts.geist(fontSize: 14, fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cardRadius)),
+          textStyle: GoogleFonts.geist(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.2,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(

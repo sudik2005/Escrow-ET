@@ -12,7 +12,7 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  testWidgets('login screen shows Escrow ET branding', (tester) async {
+  testWidgets('login screen shows Crimson Matrix access portal', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -24,9 +24,9 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Escrow ET'), findsWidgets);
-    expect(find.text('Sign in'), findsWidgets);
-    expect(find.text('Create an account'), findsOneWidget);
+    expect(find.text('Access Portal'), findsOneWidget);
+    expect(find.text('INITIALIZE CONNECTION'), findsOneWidget);
+    expect(find.text('Request clearance'), findsOneWidget);
   });
 
   testWidgets('register offers buyer and seller only', (tester) async {
@@ -40,6 +40,7 @@ void main() {
     );
     await tester.pump();
 
+    expect(find.text('Establish Node'), findsOneWidget);
     expect(find.text('Buyer'), findsOneWidget);
     expect(find.text('Seller'), findsOneWidget);
     expect(find.text('Merchant'), findsNothing);

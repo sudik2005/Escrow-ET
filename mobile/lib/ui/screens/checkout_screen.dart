@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,14 +23,39 @@ class CheckoutScreen extends ConsumerStatefulWidget {
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
+// Chapa cannot deep-link back into the app; the contract only turns FUNDED
+// once Chapa calls the webhook, so the buyer's payment has to be polled for.
+const _pollInterval = Duration(seconds: 4);
+const _pollTimeout = Duration(minutes: 4);
+
+class _CheckoutScreenState extends ConsumerState<CheckoutScreen>
+    with WidgetsBindingObserver {
   late EscrowContract _contract;
   var _busy = false;
+  var _checking = false;
+  var _awaitingPayment = false;
+  var _timedOut = false;
+  Timer? _poll;
 
   @override
   void initState() {
     super.initState();
     _contract = widget.contract;
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    _poll?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _awaitingPayment) {
+      _checkStatus();
+    }
   }
 
   String? get _token => ref.read(authControllerProvider).session?.token;
@@ -52,6 +79,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           _contract = _contract.copyWith(paymentLink: link);
           _busy = false;
         });
+        _startWatching();
       }
     } catch (error) {
       if (mounted) {
@@ -59,6 +87,75 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error is ApiException ? error.message : 'Could not open Chapa.')),
         );
+      }
+    }
+  }
+
+  void _startWatching() {
+    _poll?.cancel();
+    setState(() {
+      _awaitingPayment = true;
+      _timedOut = false;
+    });
+    final startedAt = DateTime.now();
+    _poll = Timer.periodic(_pollInterval, (timer) {
+      if (DateTime.now().difference(startedAt) > _pollTimeout) {
+        timer.cancel();
+        if (mounted) {
+          setState(() => _timedOut = true);
+        }
+        return;
+      }
+      _checkStatus();
+    });
+  }
+
+  /// Reads the contract back. Chapa's webhook is what actually funds it, so a
+  /// status other than PENDING_PAYMENT means the money landed.
+  Future<void> _checkStatus({bool announce = false}) async {
+    final token = _token;
+    if (token == null || _checking) {
+      return;
+    }
+    setState(() => _checking = true);
+    try {
+      final latest = await ref.read(escrowApiProvider).getOne(token, _contract.id);
+      if (!mounted) {
+        return;
+      }
+      if (latest.isPendingPayment) {
+        setState(() {
+          _contract = latest;
+          _checking = false;
+        });
+        if (announce) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Chapa has not confirmed the payment yet.')),
+          );
+        }
+        return;
+      }
+      _poll?.cancel();
+      ref.invalidate(escrowListProvider);
+      await ref.read(authControllerProvider.notifier).refreshUser();
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => PaymentSuccessScreen(contract: latest)),
+      );
+    } catch (error) {
+      if (mounted) {
+        setState(() => _checking = false);
+        if (announce) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                error is ApiException ? error.message : 'Could not check the payment.',
+              ),
+            ),
+          );
+        }
       }
     }
   }
@@ -98,7 +195,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           children: [
             const AppHeader(title: 'Payments'),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -169,12 +266,48 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                     ],
                   ),
+                  if (_awaitingPayment) ...[
+                    const SizedBox(height: 20),
+                    AccentCard(
+                      alert: true,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (!_timedOut)
+                            const Padding(
+                              padding: EdgeInsets.only(top: 2, right: 12),
+                              child: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                          Expanded(
+                            child: Text(
+                              _timedOut
+                                  ? 'Still no confirmation from Chapa. Finish the payment in your browser, then check again.'
+                                  : 'Waiting for Chapa to confirm your payment. Leave this screen open.',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   AppButton(
-                    label: 'CONFIRM PAYMENT  →',
+                    label: _awaitingPayment ? 'REOPEN CHAPA  →' : 'CONFIRM PAYMENT  →',
                     busy: _busy,
                     onPressed: _openChapa,
                   ),
+                  if (_awaitingPayment) ...[
+                    const SizedBox(height: 10),
+                    AppButton(
+                      label: 'I HAVE PAID - CHECK NOW',
+                      outlined: true,
+                      busy: _checking,
+                      onPressed: () => _checkStatus(announce: true),
+                    ),
+                  ],
                   const SizedBox(height: 10),
                   AppButton(
                     label: 'I PAID (SANDBOX)',

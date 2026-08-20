@@ -7,12 +7,14 @@ class AppButton extends StatelessWidget {
     required this.onPressed,
     this.busy = false,
     this.outlined = false,
+    this.icon,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool busy;
   final bool outlined;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,19 @@ class AppButton extends StatelessWidget {
         color: outlined ? Theme.of(context).colorScheme.primary : Colors.white,
       ),
     );
-    final child = busy ? spinner : Text(label);
+    final child = busy
+        ? spinner
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label),
+              if (icon != null) ...[
+                const SizedBox(width: 8),
+                Icon(icon, size: 18),
+              ],
+            ],
+          );
     if (outlined) {
       return OutlinedButton(onPressed: busy ? null : onPressed, child: child);
     }
