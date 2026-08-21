@@ -41,6 +41,14 @@ class ApiClient {
     return _send('POST', path, body: body, token: token);
   }
 
+  Future<Map<String, dynamic>> patch(
+    String path, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) {
+    return _send('PATCH', path, body: body, token: token);
+  }
+
   Future<Map<String, dynamic>> get(String path, {String? token}) {
     return _send('GET', path, token: token);
   }
@@ -89,6 +97,9 @@ class ApiClient {
     try {
       response = switch (method) {
         'GET' => await _http.get(uri, headers: headers).timeout(const Duration(seconds: 20)),
+        'PATCH' => await _http
+            .patch(uri, headers: headers, body: jsonEncode(body ?? {}))
+            .timeout(const Duration(seconds: 20)),
         _ => await _http
             .post(uri, headers: headers, body: jsonEncode(body ?? {}))
             .timeout(const Duration(seconds: 20)),

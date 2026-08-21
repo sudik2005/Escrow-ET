@@ -1,100 +1,331 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../models/escrow_contract.dart';
 import '../../theme/app_colors.dart';
-import '../widgets/accent_card.dart';
 import '../widgets/app_controls.dart';
+import '../widgets/app_header.dart';
 
-class QrVerifyScreen extends StatelessWidget {
+class QrVerifyScreen extends StatefulWidget {
   const QrVerifyScreen({super.key, required this.contract});
 
   final EscrowContract contract;
 
   @override
+  State<QrVerifyScreen> createState() => _QrVerifyScreenState();
+}
+
+class _QrVerifyScreenState extends State<QrVerifyScreen> {
+  static const _duration = Duration(minutes: 5);
+  late Duration _remaining;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _remaining = _duration;
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        if (_remaining.inSeconds > 0) {
+          _remaining -= const Duration(seconds: 1);
+        } else {
+          _timer?.cancel();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String get _timerLabel {
+    final m = _remaining.inMinutes.toString().padLeft(2, '0');
+    final s = (_remaining.inSeconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  bool get _expired => _remaining.inSeconds == 0;
+
+  @override
   Widget build(BuildContext context) {
-    final token = contract.deliveryQrToken ?? '';
     final dark = AppColors.isDark(context);
+    final qrData = widget.contract.deliveryQrToken ?? widget.contract.id;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transaction Detail'),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-        children: [
-          Text(
-            'Scan to verify',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).colorScheme.onSurface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppHeader(
+              title: 'Transaction Details',
+              showBack: true,
+              showAvatar: true,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Present this code at delivery so the buyer can confirm.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.snow,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35)),
-              ),
-              child: token.isEmpty
-                  ? const SizedBox(height: 200, width: 200)
-                  : QrImageView(
-                      data: token,
-                      size: 220,
-                      backgroundColor: AppColors.snow,
-                    ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed: token.isEmpty
-                ? null
-                : () async {
-                    await Clipboard.setData(ClipboardData(text: token));
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Delivery token copied.')),
-                      );
-                    }
-                  },
-            child: const Text('Copy delivery token'),
-          ),
-          const SizedBox(height: 16),
-          AccentCard(
-            alert: true,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'SECURITY WARNING\nDo not share this code except at delivery. It is unique to this escrow.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: dark ? AppColors.darkPrimary : AppColors.lightPrimary,
-                      height: 1.45,
+            Expanded(
+              child: ListView(
+                padding:
+                    const EdgeInsets.fromLTRB(24, 16, 24, 40),
+                children: [
+                  const SizedBox(height: 16),
+
+                  // ── Heading ───────────────────────────
+                  Text(
+                    'Identity Code',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.geist(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      letterSpacing: -0.4,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    'Align frame within scanner to verify identity.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: dark
+                              ? AppColors.darkMuted
+                              : AppColors.lightMuted,
+                        ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // ── QR card with corner brackets ──────
+                  Center(
+                    child: Container(
+                      width: 240,
+                      height: 240,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.snow,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: QrImageView(
+                              data: qrData,
+                              size: 200,
+                              backgroundColor: AppColors.snow,
+                              errorStateBuilder: (_, _) => const Icon(
+                                Icons.qr_code_2,
+                                size: 80,
+                                color: AppColors.onyx,
+                              ),
+                            ),
+                          ),
+                          // Corner brackets
+                          ..._brackets(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── Timer ─────────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.timer_outlined,
+                        size: 16,
+                        color: _expired
+                            ? AppColors.crimson
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _expired ? 'Expired' : _timerLabel,
+                        style: GoogleFonts.geist(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _expired
+                              ? AppColors.crimson
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+
+                  // ── Security notice ────────────────────
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.crimson.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: AppColors.crimson.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.shield_outlined,
+                            color: AppColors.crimson, size: 18),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Security Notice',
+                                style: GoogleFonts.geist(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.crimson,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'This code grants temporary access and will expire. Do not screenshot or share it.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: AppColors.crimson
+                                          .withValues(alpha: 0.85),
+                                      height: 1.4,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // ── Buttons ───────────────────────────
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppButton(
+                          label: 'REGENERATE',
+                          outlined: true,
+                          icon: Icons.refresh,
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Regenerate from the backend is not available yet.'),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AppButton(
+                          label: 'DONE',
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          AppButton(label: 'DONE', onPressed: () => Navigator.of(context).pop()),
-        ],
+          ],
+        ),
       ),
     );
   }
+
+  List<Widget> _brackets() {
+    const len = 20.0;
+    const thick = 2.5;
+    final color = AppColors.crimson;
+    return [
+      // top-left
+      Positioned(
+        top: 0,
+        left: 0,
+        child: _L(color: color, len: len, thick: thick, flip: false, vFlip: false),
+      ),
+      // top-right
+      Positioned(
+        top: 0,
+        right: 0,
+        child: _L(color: color, len: len, thick: thick, flip: true, vFlip: false),
+      ),
+      // bottom-left
+      Positioned(
+        bottom: 0,
+        left: 0,
+        child: _L(color: color, len: len, thick: thick, flip: false, vFlip: true),
+      ),
+      // bottom-right
+      Positioned(
+        bottom: 0,
+        right: 0,
+        child: _L(color: color, len: len, thick: thick, flip: true, vFlip: true),
+      ),
+    ];
+  }
+}
+
+class _L extends StatelessWidget {
+  const _L({
+    required this.color,
+    required this.len,
+    required this.thick,
+    required this.flip,
+    required this.vFlip,
+  });
+  final Color color;
+  final double len;
+  final double thick;
+  final bool flip;
+  final bool vFlip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.scale(
+      scaleX: flip ? -1 : 1,
+      scaleY: vFlip ? -1 : 1,
+      child: SizedBox(
+        width: len,
+        height: len,
+        child: CustomPaint(
+          painter: _CornerPainter(color: color, thick: thick),
+        ),
+      ),
+    );
+  }
+}
+
+class _CornerPainter extends CustomPainter {
+  const _CornerPainter({required this.color, required this.thick});
+  final Color color;
+  final double thick;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()
+      ..color = color
+      ..strokeWidth = thick
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(0, 0), Offset(size.width, 0), p);
+    canvas.drawLine(Offset(0, 0), Offset(0, size.height), p);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
 }

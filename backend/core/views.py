@@ -24,6 +24,7 @@ from .serializers import (
     DisputeCreateSerializer,
     EscrowContractSerializer,
     EscrowCreateSerializer,
+    ProfileUpdateSerializer,
     RegisterSerializer,
     UserSerializer,
 )
@@ -70,6 +71,16 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        return Response(UserSerializer(request.user).data)
+
+    def patch(self, request):
+        serializer = ProfileUpdateSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(UserSerializer(request.user).data)
 
 # api-create, list, get, mark shipped, confirm delivery and many more
@@ -186,9 +197,9 @@ class SandboxFundView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        if not settings.DEBUG:
+        if not settings.ALLOW_SANDBOX_FUND:
             return Response(
-                {"error": "Sandbox funding is only available in DEBUG"},
+                {"error": "Sandbox funding is disabled on this server"},
                 status=status.HTTP_403_FORBIDDEN,
             )
         contract = get_object_or_404(EscrowContract, pk=pk)

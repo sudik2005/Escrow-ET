@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/escrow_contract.dart';
 import '../../state/auth_controller.dart';
@@ -17,7 +18,6 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).session?.user;
     final list = ref.watch(escrowListProvider);
-    final dark = AppColors.isDark(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -25,116 +25,133 @@ class DashboardScreen extends ConsumerWidget {
         const AppHeader(title: 'Dashboard'),
         Expanded(
           child: list.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => _Message(
-              text: error.toString(),
+            loading: () =>
+                const Center(child: CircularProgressIndicator()),
+            error: (e, _) => _ErrorView(
+              text: e.toString(),
               onRetry: () => ref.invalidate(escrowListProvider),
             ),
             data: (contracts) {
+              final available =
+                  double.tryParse(user?.balance ?? '0') ?? 0;
               final locked = contracts
                   .where((c) => c.isFunded || c.isInTransit)
-                  .fold<double>(0, (sum, c) => sum + c.amountValue);
+                  .fold<double>(0, (s, c) => s + c.amountValue);
               final released = contracts
                   .where((c) => c.status == 'COMPLETED')
-                  .fold<double>(0, (sum, c) => sum + c.amountValue);
+                  .fold<double>(0, (s, c) => s + c.amountValue);
               final recent = contracts.take(6).toList();
+
               return RefreshIndicator(
                 onRefresh: () async {
-                  await ref.read(authControllerProvider.notifier).refreshUser();
+                  await ref
+                      .read(authControllerProvider.notifier)
+                      .refreshUser();
                   ref.invalidate(escrowListProvider);
                   await ref.read(escrowListProvider.future);
                 },
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding:
+                      const EdgeInsets.fromLTRB(24, 8, 24, 32),
                   children: [
-                    Text(
-                      'Overview',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    // ── Stat cards ───────────────────────
+                    _StatCard(
+                      label: 'AVAILABLE',
+                      icon: Icons.account_balance_wallet_outlined,
+                      amount: available,
+                      subtitle: 'Your balance',
                     ),
                     const SizedBox(height: 12),
-                    AccentCard(
-                      stripe: true,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'AVAILABLE BALANCE',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    _StatCard(
+                      label: 'LOCKED ESCROW',
+                      icon: Icons.lock_outline,
+                      amount: locked,
+                      subtitle: 'Pending buyer release',
+                    ),
+                    const SizedBox(height: 12),
+                    _StatCard(
+                      label: 'TOTAL RELEASED',
+                      icon: Icons.check_circle_outline,
+                      amount: released,
+                      subtitle: 'All time',
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Withdraw CTA ─────────────────────
+                    SizedBox(
+                      height: 52,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Withdrawals coming soon.'),
+                            ),
+                          );
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.crimson,
+                          foregroundColor: AppColors.snow,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.download, size: 18),
+                        label: Text(
+                          'WITHDRAW FUNDS',
+                          style: GoogleFonts.geist(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // ── Recent Activity ──────────────────
+                    Row(
+                      children: [
+                        Text(
+                          'Recent Activity',
+                          style: GoogleFonts.geist(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface,
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => ref
+                              .read(shellTabProvider.notifier)
+                              .state = 2,
+                          child: Text(
+                            'VIEW ALL',
+                            style: GoogleFonts.geist(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.crimson,
                               letterSpacing: 0.8,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${user?.balance ?? '0.00'} ETB',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _MiniStat(
-                                  icon: Icons.lock_outline,
-                                  label: 'Locked',
-                                  value: '${locked.toStringAsFixed(2)} ETB',
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _MiniStat(
-                                  icon: Icons.check_circle_outline,
-                                  label: 'Released',
-                                  value: '${released.toStringAsFixed(2)} ETB',
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Divider(color: Theme.of(context).colorScheme.outline),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Text(
-                                'Total Transactions',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              const Spacer(),
-                              Text(
-                                '${contracts.length}',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Recent Activity',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     if (recent.isEmpty)
                       AccentCard(
                         child: Text(
-                          'No escrows yet. Sellers create a payment link; buyers see it here.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                          'No transactions yet. Start by creating or accepting an escrow.',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(height: 1.5),
                         ),
                       )
                     else
-                      for (final contract in recent) ...[
-                        _ActivityRow(contract: contract, dark: dark),
+                      for (final c in recent) ...[
+                        _ActivityRow(contract: c),
                         const SizedBox(height: 8),
                       ],
                   ],
@@ -148,32 +165,94 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.icon, required this.label, required this.value});
+// ── Stat card ─────────────────────────────────────────────────────────────────
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.label,
+    required this.icon,
+    required this.amount,
+    required this.subtitle,
+  });
 
-  final IconData icon;
   final String label;
-  final String value;
+  final IconData icon;
+  final double amount;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
     final dark = AppColors.isDark(context);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: dark ? AppColors.darkContainerHigh : AppColors.lightContainer,
-        borderRadius: BorderRadius.circular(8),
+        color: dark ? AppColors.darkSurface : AppColors.snow,
+        borderRadius: BorderRadius.circular(12),
+        border:
+            Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: Theme.of(context).colorScheme.secondary),
-          const SizedBox(height: 8),
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
+          Row(
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.geist(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                icon,
+                size: 18,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.4),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: amount.toStringAsFixed(2),
+                  style: GoogleFonts.geist(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                TextSpan(
+                  text: ' ETB',
+                  style: GoogleFonts.geist(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: dark
+                      ? AppColors.darkMuted
+                      : AppColors.lightMuted,
+                ),
           ),
         ],
       ),
@@ -181,35 +260,46 @@ class _MiniStat extends StatelessWidget {
   }
 }
 
+// ── Activity row ──────────────────────────────────────────────────────────────
 class _ActivityRow extends StatelessWidget {
-  const _ActivityRow({required this.contract, required this.dark});
-
+  const _ActivityRow({required this.contract});
   final EscrowContract contract;
-  final bool dark;
 
   @override
   Widget build(BuildContext context) {
+    final dark = AppColors.isDark(context);
+    final isAlert = contract.status == 'DISPUTED';
+
     return AccentCard(
-      alert: contract.status == 'DISPUTED',
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => TrackingDetailScreen(contract: contract)),
-        );
-      },
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      alert: isAlert,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TrackingDetailScreen(contract: contract),
+        ),
+      ),
+      padding: const EdgeInsets.all(14),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: dark ? AppColors.darkContainerHigh : AppColors.lightContainer,
-              borderRadius: BorderRadius.circular(8),
+              color: dark
+                  ? AppColors.darkContainerHigh
+                  : AppColors.lightContainer,
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              contract.status == 'DISPUTED' ? Icons.warning_amber_rounded : Icons.account_balance_wallet_outlined,
+              isAlert
+                  ? Icons.warning_amber_rounded
+                  : Icons.account_balance_wallet_outlined,
               size: 20,
-              color: Theme.of(context).colorScheme.secondary,
+              color: isAlert
+                  ? AppColors.crimson
+                  : Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.55),
             ),
           ),
           const SizedBox(width: 12),
@@ -219,8 +309,11 @@ class _ActivityRow extends StatelessWidget {
               children: [
                 Text(
                   contract.itemName,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   '${contract.amount} ${contract.currency}',
                   style: Theme.of(context).textTheme.bodySmall,
@@ -235,23 +328,31 @@ class _ActivityRow extends StatelessWidget {
   }
 }
 
-class _Message extends StatelessWidget {
-  const _Message({required this.text, required this.onRetry});
-
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.text, required this.onRetry});
   final String text;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       children: [
         AccentCard(
+          alert: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(text),
-              TextButton(onPressed: onRetry, child: const Text('Try again')),
+              Text(text,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(height: 1.5)),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: onRetry,
+                child: const Text('TRY AGAIN'),
+              ),
             ],
           ),
         ),

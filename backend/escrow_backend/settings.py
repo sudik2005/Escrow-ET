@@ -165,6 +165,11 @@ CHAPA_PUBLIC_KEY = os.getenv('CHAPA_PUBLIC_KEY', '')
 CHAPA_SECRET_KEY = os.getenv('CHAPA_SECRET_KEY', '')
 CHAPA_WEBHOOK_SECRET = os.getenv('CHAPA_WEBHOOK_SECRET', '')
 
+# SANDBOX
+# Allow /escrow/<id>/sandbox-fund/ without requiring DEBUG=True.
+# Set ALLOW_SANDBOX_FUND=False in production once real Chapa webhooks are live.
+ALLOW_SANDBOX_FUND = os.getenv('ALLOW_SANDBOX_FUND', 'True').lower() == 'true'
+
 
 # INTERNATIONALIZATION
 
