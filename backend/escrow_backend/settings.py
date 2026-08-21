@@ -37,11 +37,16 @@ if not SECRET_KEY:
 # Read DEBUG from .env.
 DEBUG = os.getenv('DJANGO_DEBUG') == 'True'
 
-ALLOWED_HOSTS = [
+_allowed = [
     host.strip()
     for host in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
     if host.strip()
 ]
+# Vercel injects VERCEL_URL (e.g. my-app-abc123.vercel.app) at runtime.
+_vercel_host = os.getenv('VERCEL_URL', '')
+if _vercel_host and _vercel_host not in _allowed:
+    _allowed.append(_vercel_host)
+ALLOWED_HOSTS = _allowed
 
 # APPLICATION DEFINITION
 
@@ -67,6 +72,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -111,7 +117,7 @@ if not _database_url:
 DATABASES = {
     'default': dj_database_url.parse(
         _database_url,
-        conn_max_age=600,
+        conn_max_age=0,  # serverless: no persistent connections
         ssl_require=True,
     )
 }
@@ -150,8 +156,8 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Flutter web (Chrome) on this machine.
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+# Allow all origins so the Flutter app (any device/IP) can reach the API.
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = (
     'accept',
     'authorization',
@@ -185,6 +191,8 @@ USE_TZ = True
 # STATIC FILES
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # EMAIL
