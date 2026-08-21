@@ -19,9 +19,9 @@ class ApiException implements Exception {
           return;
         }
         if (value is List) {
-          parts.add(value.map((item) => item.toString()).join(', '));
+          parts.add('$key: ${value.map((item) => item.toString()).join(', ')}');
         } else if (value != null) {
-          parts.add(value.toString());
+          parts.add('$key: $value');
         }
       });
       if (parts.isNotEmpty) {

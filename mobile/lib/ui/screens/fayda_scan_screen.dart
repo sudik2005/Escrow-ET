@@ -20,25 +20,21 @@ class FaydaScanScreen extends ConsumerStatefulWidget {
   ConsumerState<FaydaScanScreen> createState() => _FaydaScanScreenState();
 }
 
-class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabs;
+class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen> {
+  // Fayda V4 QRs are dense. Android defaults to 640x480 if unset, which
+  // cannot read the card; gallery photos work because they keep full resolution.
+  final _controller = MobileScannerController(
+    detectionSpeed: DetectionSpeed.unrestricted,
+    formats: const [BarcodeFormat.qrCode],
+    cameraResolution: const Size(1920, 1080),
+  );
   var _loading = false;
   String? _error;
-  var _cameraHandled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabs = TabController(length: 2, vsync: this);
-    _tabs.addListener(() {
-      if (mounted) setState(() => _error = null);
-    });
-  }
+  var _handled = false;
 
   @override
   void dispose() {
-    _tabs.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -47,9 +43,8 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
       : 'Scan Fayda ID';
 
   Future<void> _handleQrText(String text) async {
-    if (_tabs.index != 0) return;
-    if (_cameraHandled || _loading) return;
-    _cameraHandled = true;
+    if (_handled || _loading) return;
+    _handled = true;
     await _processText(text);
   }
 
@@ -64,7 +59,7 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
       setState(() {
         _error = faydaScanErrorMessage(result.error.code);
         _loading = false;
-        _cameraHandled = false;
+        _handled = false;
       });
       return;
     }
@@ -82,7 +77,7 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
       setState(() {
         _error = auth.error ?? 'Could not sign in with this Fayda ID.';
         _loading = false;
-        _cameraHandled = false;
+        _handled = false;
       });
       return;
     }
@@ -95,38 +90,47 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
     if (!mounted) return;
     setState(() {
       _loading = false;
-      _cameraHandled = false;
+      _handled = false;
     });
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 100,
-    );
-    if (file == null) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final controller = MobileScannerController();
+    if (_loading) return;
     try {
-      final capture = await controller.analyzeImage(file.path);
-      if (!mounted) return;
-      final raw = capture?.barcodes.firstOrNull?.rawValue;
-      if (raw != null && raw.isNotEmpty) {
-        _cameraHandled = false;
-        await _processText(raw);
-        return;
-      }
+      final file = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 100,
+        requestFullMetadata: false,
+      );
+      if (!mounted || file == null) return;
       setState(() {
-        _error =
-            'No QR code found in the selected image.\nUse a clearer photo of the card back.';
+        _loading = true;
+        _error = null;
+      });
+      final analyzer = MobileScannerController();
+      try {
+        final capture = await analyzer.analyzeImage(file.path);
+        if (!mounted) return;
+        final raw = capture?.barcodes.firstOrNull?.rawValue;
+        if (raw != null && raw.isNotEmpty) {
+          _handled = false;
+          await _processText(raw);
+          return;
+        }
+        setState(() {
+          _error =
+              'No QR code found in the selected image.\nUse a clearer photo of the card back.';
+          _loading = false;
+        });
+      } finally {
+        analyzer.dispose();
+      }
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Could not open the gallery. Try again.';
         _loading = false;
       });
-    } finally {
-      controller.dispose();
     }
   }
 
@@ -139,19 +143,14 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          TabBarView(
-            controller: _tabs,
-            children: [
-              MobileScanner(
-                onDetect: (capture) {
-                  final value = capture.barcodes.firstOrNull?.rawValue;
-                  if (value != null && value.isNotEmpty) {
-                    _handleQrText(value);
-                  }
-                },
-              ),
-              _GalleryTab(onPick: busy ? null : _pickImage),
-            ],
+          MobileScanner(
+            controller: _controller,
+            onDetect: (capture) {
+              final value = capture.barcodes.firstOrNull?.rawValue;
+              if (value != null && value.isNotEmpty) {
+                _handleQrText(value);
+              }
+            },
           ),
           Center(
             child: SizedBox(
@@ -185,7 +184,12 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(width: 48),
+                    IconButton(
+                      onPressed: busy ? null : _pickImage,
+                      icon: const Icon(Icons.photo_outlined,
+                          color: AppColors.snow),
+                      tooltip: 'Choose a photo',
+                    ),
                   ],
                 ),
               ),
@@ -200,23 +204,33 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TabBar(
-                    controller: _tabs,
-                    indicatorColor: AppColors.crimson,
-                    labelColor: AppColors.snow,
-                    unselectedLabelColor: AppColors.snow.withValues(alpha: 0.5),
-                    tabs: const [
-                      Tab(text: 'CAMERA'),
-                      Tab(text: 'GALLERY'),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
                   Text(
-                    'Scan the QR on the back of your Fayda ID.',
+                    'Hold the camera close to the QR on the back of the card.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.snow.withValues(alpha: 0.75),
                       fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    height: 46,
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: busy ? null : _pickImage,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.snow,
+                        side: const BorderSide(color: AppColors.snow),
+                      ),
+                      icon: const Icon(Icons.photo_outlined, size: 18),
+                      label: Text(
+                        'CHOOSE FROM GALLERY',
+                        style: GoogleFonts.geist(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
                     ),
                   ),
                   if (_error != null) ...[
@@ -247,32 +261,6 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen>
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _GalleryTab extends StatelessWidget {
-  const _GalleryTab({required this.onPick});
-
-  final VoidCallback? onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.black,
-      child: Center(
-        child: TextButton.icon(
-          onPressed: onPick,
-          icon: const Icon(Icons.photo_outlined, color: AppColors.snow),
-          label: Text(
-            'Choose a photo',
-            style: GoogleFonts.geist(
-              color: AppColors.snow,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ),
     );
   }

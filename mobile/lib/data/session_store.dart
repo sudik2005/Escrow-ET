@@ -43,6 +43,7 @@ class SessionStore {
   Future<void> clear() async {
     await _box?.delete('token');
     await _box?.delete('user');
+    await _box?.delete('remembered_username');
   }
 
   String theme() => (_box?.get('theme') as String?) ?? 'light';
