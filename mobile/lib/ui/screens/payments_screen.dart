@@ -36,10 +36,14 @@ class PaymentsScreen extends ConsumerWidget {
               onRetry: () => ref.invalidate(escrowListProvider),
             ),
             data: (contracts) {
-              final pending = contracts
+              final phone = user?.phoneNumber ?? '';
+              final mine = seller
+                  ? contracts.where((c) => c.isSaleFor(phone)).toList()
+                  : contracts.where((c) => c.isPurchaseFor(phone)).toList();
+              final pending = mine
                   .where((c) => c.isPendingPayment)
                   .toList();
-              final others = contracts
+              final others = mine
                   .where((c) => !c.isPendingPayment)
                   .toList();
 

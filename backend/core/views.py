@@ -274,19 +274,17 @@ class SandboxFundView(APIView):
 class MyEscrowContractsView(APIView):
     """
     GET /api/escrow/mine/
-    Returns contracts scoped to the user's *current* role so that switching
-    roles shows a clean slate.  Sellers see contracts where they are the
-    seller; everyone else sees contracts where they are the buyer.
+    Returns every contract the user is on, as buyer or seller.
+    The Flutter shells split those into purchases vs sales.
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
-        if user.role == user.Role.SELLER:
-            contracts = EscrowContract.objects.filter(seller=user)
-        else:
-            contracts = EscrowContract.objects.filter(buyer=user)
+        contracts = EscrowContract.objects.filter(
+            models.Q(buyer=user) | models.Q(seller=user)
+        )
         return Response(
             EscrowContractSerializer(
                 contracts.order_by("-created_at"), many=True

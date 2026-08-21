@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/escrow_contract.dart';
+import '../../state/auth_controller.dart';
 import '../../state/escrow_controller.dart';
 import '../../theme/app_colors.dart';
 import '../widgets/accent_card.dart';
@@ -16,6 +17,8 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final list = ref.watch(escrowListProvider);
+    final user = ref.watch(authControllerProvider).session?.user;
+    final phone = user?.phoneNumber ?? '';
 
     return Column(
       children: [
@@ -29,7 +32,10 @@ class NotificationsScreen extends ConsumerWidget {
               onRetry: () => ref.invalidate(escrowListProvider),
             ),
             data: (contracts) {
-              final alerts = _buildAlerts(contracts);
+              final mine = (user?.isSeller ?? false)
+                  ? contracts.where((c) => c.isSaleFor(phone)).toList()
+                  : contracts.where((c) => c.isPurchaseFor(phone)).toList();
+              final alerts = _buildAlerts(mine);
               if (alerts.isEmpty) {
                 return _EmptyState();
               }

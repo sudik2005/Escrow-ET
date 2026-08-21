@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../data/api_exception.dart';
+import '../../data/phone.dart';
 import '../../state/auth_controller.dart';
 import '../../state/escrow_controller.dart';
 import '../../theme/app_colors.dart';
@@ -57,7 +58,7 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
     try {
       await ref.read(escrowApiProvider).create(
             token: token,
-            buyerPhone: phone,
+            buyerPhone: normalizeEtPhone(phone),
             itemName: item,
             amount: amount,
             pin: _generatePin(),

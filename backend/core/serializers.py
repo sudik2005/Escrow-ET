@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from .fayda import FaydaError, FaydaIdentity, verify_and_decode
 from .models import User, EscrowContract, PaymentTransaction
+from .phone import normalize_et_phone
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -45,7 +46,7 @@ class RegisterSerializer(serializers.Serializer):
         return value
 
     def validate_phone_number(self, value):
-        value = value.strip()
+        value = normalize_et_phone(value)
         if not value:
             raise serializers.ValidationError("Phone number is required.")
         if User.objects.filter(phone_number=value).exists():
@@ -101,11 +102,18 @@ class EscrowCreateSerializer(serializers.ModelSerializer):
         fields = ["buyer_phone", "item_name", "amount", "currency", "verification_pin"]
 
     def validate_buyer_phone(self, value):
-        try:
-            self._buyer = User.objects.get(phone_number=value)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("No user found with this phone number")
-        return value
+        raw = (value or "").strip()
+        normalized = normalize_et_phone(raw)
+        buyer = (
+            User.objects.filter(phone_number=normalized).first()
+            or User.objects.filter(phone_number=raw).first()
+        )
+        if buyer is None:
+            raise serializers.ValidationError(
+                "No user found with this phone number"
+            )
+        self._buyer = buyer
+        return normalized
 
     def create(self, validated_data):
         validated_data.pop("buyer_phone")

@@ -32,15 +32,18 @@ class DashboardScreen extends ConsumerWidget {
               onRetry: () => ref.invalidate(escrowListProvider),
             ),
             data: (contracts) {
+              final mine = contracts
+                  .where((c) => c.isSaleFor(user?.phoneNumber ?? ''))
+                  .toList();
               final available =
                   double.tryParse(user?.balance ?? '0') ?? 0;
-              final locked = contracts
+              final locked = mine
                   .where((c) => c.isFunded || c.isInTransit)
                   .fold<double>(0, (s, c) => s + c.amountValue);
-              final released = contracts
+              final released = mine
                   .where((c) => c.status == 'COMPLETED')
                   .fold<double>(0, (s, c) => s + c.amountValue);
-              final recent = contracts.take(6).toList();
+              final recent = mine.take(6).toList();
 
               return RefreshIndicator(
                 onRefresh: () async {
