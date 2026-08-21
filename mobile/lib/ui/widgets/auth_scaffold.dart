@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
-import 'brand_mark.dart';
+import 'brand_mark.dart'; // ignore: unused_import
 
 class AuthScaffold extends StatelessWidget {
   const AuthScaffold({
@@ -57,9 +57,7 @@ class AuthScaffold extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          BrandLockup(
-                            subtitle: isDark ? 'Mobile' : 'Mobile',
-                          ),
+                          BrandMark(size: 40),
                           const SizedBox(height: 28),
                           Text(
                             eyebrow.toUpperCase(),

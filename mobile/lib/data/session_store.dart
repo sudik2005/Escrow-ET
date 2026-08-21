@@ -50,4 +50,28 @@ class SessionStore {
   Future<void> setTheme(String theme) async {
     await _box?.put('theme', theme);
   }
+
+  String? rememberedUsername() => _box?.get('remembered_username') as String?;
+
+  Future<void> setRememberedUsername(String? username) async {
+    if (username == null || username.isEmpty) {
+      await _box?.delete('remembered_username');
+      return;
+    }
+    await _box?.put('remembered_username', username);
+  }
+
+  bool flag(String key, {bool fallback = false}) {
+    return (_box?.get(key) as bool?) ?? fallback;
+  }
+
+  Future<void> setFlag(String key, bool value) async {
+    await _box?.put(key, value);
+  }
+
+  String text(String key) => (_box?.get(key) as String?) ?? '';
+
+  Future<void> setText(String key, String value) async {
+    await _box?.put(key, value);
+  }
 }

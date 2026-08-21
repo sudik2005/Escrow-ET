@@ -1,0 +1,21 @@
+---
+description: Kidus owns Flutter and database; Django teammate owns most of backend
+alwaysApply: true
+---
+
+# Team domains
+
+Kidus (repo admin) owns:
+
+- `mobile/` — Flutter app
+- Database / ORM — schema, models, and migrations for Supabase PostgreSQL (`DATABASE_URL`)
+
+A separate **Django developer** owns most of `backend/`: REST API, views, serializers, permissions, Chapa webhooks, Swagger, Celery, and app wiring. Do not generate that unless Kidus explicitly asks.
+
+Do not generate React (`web/`) unless he explicitly asks.
+
+When doing database work, stop at models/migrations (and ledger integrity constraints). Leave endpoints and business-view logic for the Django teammate.
+
+Default for UI work is Flutter. Default for persistence is Django ORM against Postgres, not Hive-as-source-of-truth and not a Flutter SQL connection.
+
+Git: day-to-day work merges into `prototype`, not `main`. Never list Cursor as a contributor or co-author.

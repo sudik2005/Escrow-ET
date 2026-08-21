@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../theme/app_colors.dart';
 
 class AppButton extends StatelessWidget {
   const AppButton({
@@ -7,12 +10,14 @@ class AppButton extends StatelessWidget {
     required this.onPressed,
     this.busy = false,
     this.outlined = false,
+    this.icon,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool busy;
   final bool outlined;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +26,43 @@ class AppButton extends StatelessWidget {
       height: 18,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        color: outlined ? Theme.of(context).colorScheme.primary : Colors.white,
+        color: outlined ? AppColors.crimson : AppColors.snow,
       ),
     );
-    final child = busy ? spinner : Text(label);
+
+    final labelStyle = GoogleFonts.geist(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 1.4,
+    );
+
+    final child = busy
+        ? spinner
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 17),
+                const SizedBox(width: 8),
+              ],
+              Text(label, style: labelStyle),
+            ],
+          );
+
     if (outlined) {
-      return OutlinedButton(onPressed: busy ? null : onPressed, child: child);
+      return SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: OutlinedButton(onPressed: busy ? null : onPressed, child: child),
+      );
     }
-    return FilledButton(onPressed: busy ? null : onPressed, child: child);
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: FilledButton(onPressed: busy ? null : onPressed, child: child),
+    );
   }
 }
 
@@ -66,10 +100,10 @@ class AppTextField extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.6,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -80,10 +114,7 @@ class AppTextField extends StatelessWidget {
           autofillHints: autofillHints,
           onSubmitted: onSubmitted,
           maxLines: obscureText ? 1 : maxLines,
-          decoration: InputDecoration(
-            hintText: hint,
-            suffixIcon: suffix,
-          ),
+          decoration: InputDecoration(hintText: hint, suffixIcon: suffix),
         ),
       ],
     );

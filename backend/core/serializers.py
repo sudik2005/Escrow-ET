@@ -114,6 +114,39 @@ class EscrowContractSerializer(serializers.ModelSerializer):
         return bool(obj.verification_pin)
 
 
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """
+    PATCH /api/auth/me/
+    Only username and role may be changed post-registration.
+    Phone number is the identifier and cannot move; email and password
+    have their own flows.
+    """
+
+    class Meta:
+        model = User
+        fields = ["username", "role"]
+
+    def validate_role(self, value):
+        allowed = (User.Role.BUYER, User.Role.SELLER, User.Role.MERCHANT)
+        if value not in allowed:
+            raise serializers.ValidationError(
+                f"role must be one of: {', '.join(allowed)}"
+            )
+        return value
+
+    def validate_username(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Username cannot be blank.")
+        # Check uniqueness excluding the current user
+        qs = User.objects.filter(username=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("This username is already taken.")
+        return value
+
+
 class ConfirmDeliverySerializer(serializers.Serializer):
     """
     POST /api/escrow/<id>/confirm-delivery/
