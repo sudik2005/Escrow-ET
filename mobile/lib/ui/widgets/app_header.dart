@@ -197,10 +197,8 @@ class _ProfileSheet extends ConsumerWidget {
               icon: Icons.edit_outlined,
               label: 'Edit Username',
               dark: dark,
-              onTap: () {
-                Navigator.pop(context);
-                _showEditUsernameDialog(context, ref, user?.username ?? '');
-              },
+              onTap: () =>
+                  _showEditUsernameDialog(context, ref, user?.username ?? ''),
             ),
 
             const SizedBox(height: 4),
@@ -211,10 +209,8 @@ class _ProfileSheet extends ConsumerWidget {
               label: 'Switch Role',
               sublabel: user?.role == 'BUYER' ? 'Currently: Buyer' : 'Currently: Seller',
               dark: dark,
-              onTap: () {
-                Navigator.pop(context);
-                _showSwitchRoleDialog(context, ref, user?.role ?? 'BUYER');
-              },
+              onTap: () =>
+                  _showSwitchRoleDialog(context, ref, user?.role ?? 'BUYER'),
             ),
 
             const SizedBox(height: 16),
@@ -240,30 +236,33 @@ class _ProfileSheet extends ConsumerWidget {
   }
 
   void _showEditUsernameDialog(
-      BuildContext context, WidgetRef ref, String current) {
+      BuildContext sheetContext, WidgetRef ref, String current) {
     final controller = TextEditingController(text: current);
     showDialog<void>(
-      context: context,
+      context: sheetContext,
       builder: (ctx) => _EditUsernameDialog(
         controller: controller,
         onConfirm: (newUsername) async {
           if (newUsername.trim().isEmpty || newUsername.trim() == current) {
+            if (ctx.mounted) Navigator.of(ctx).pop();
             return;
           }
           try {
             await ref
                 .read(authControllerProvider.notifier)
                 .updateProfile(username: newUsername.trim());
+            // close dialog first, then sheet
             if (ctx.mounted) Navigator.of(ctx).pop();
+            if (sheetContext.mounted) Navigator.of(sheetContext).pop();
           } on ApiException catch (e) {
             if (ctx.mounted) {
               ScaffoldMessenger.of(ctx)
                   .showSnackBar(SnackBar(content: Text(e.message)));
             }
-          } catch (_) {
+          } catch (e) {
             if (ctx.mounted) {
               ScaffoldMessenger.of(ctx).showSnackBar(
-                const SnackBar(content: Text('Could not update username.')),
+                SnackBar(content: Text(e.toString())),
               );
             }
           }
@@ -273,9 +272,9 @@ class _ProfileSheet extends ConsumerWidget {
   }
 
   void _showSwitchRoleDialog(
-      BuildContext context, WidgetRef ref, String currentRole) {
+      BuildContext sheetContext, WidgetRef ref, String currentRole) {
     showDialog<void>(
-      context: context,
+      context: sheetContext,
       builder: (ctx) => _SwitchRoleDialog(
         currentRole: currentRole,
         onSelect: (newRole) async {
@@ -287,16 +286,18 @@ class _ProfileSheet extends ConsumerWidget {
             await ref
                 .read(authControllerProvider.notifier)
                 .updateProfile(role: newRole);
+            // close dialog first, then sheet
             if (ctx.mounted) Navigator.of(ctx).pop();
+            if (sheetContext.mounted) Navigator.of(sheetContext).pop();
           } on ApiException catch (e) {
             if (ctx.mounted) {
               ScaffoldMessenger.of(ctx)
                   .showSnackBar(SnackBar(content: Text(e.message)));
             }
-          } catch (_) {
+          } catch (e) {
             if (ctx.mounted) {
               ScaffoldMessenger.of(ctx).showSnackBar(
-                const SnackBar(content: Text('Could not switch role.')),
+                SnackBar(content: Text(e.toString())),
               );
             }
           }

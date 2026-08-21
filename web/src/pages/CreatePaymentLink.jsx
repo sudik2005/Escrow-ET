@@ -1,26 +1,45 @@
 import { useState } from 'react'
 import { ArrowLeft, Copy, Share2 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import * as api from '../lib/api'
 
 function CreatePaymentLink() {
+  const { token } = useAuth()
   const [formData, setFormData] = useState({
     productName: '',
     amount: '',
     currency: 'ETB',
+    buyerPhone: '',
     description: '',
     deliveryTime: '',
   })
   const [generatedLink, setGeneratedLink] = useState(null)
+  const [error, setError] = useState(null)
+  const [busy, setBusy] = useState(false)
 
   function handleChange(e) {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    // TODO: replace with real API call to Django once backend is ready.
-    const fakeId = Math.random().toString(36).substring(2, 8).toUpperCase()
-    setGeneratedLink(`https://escrow-et.com/pay/${fakeId}`)
+    setError(null)
+    setBusy(true)
+    try {
+      const contract = await api.createContract(token, {
+        buyerPhone: formData.buyerPhone,
+        itemName: formData.productName,
+        amount: formData.amount,
+      })
+      const id = contract.id
+      const origin = window.location.origin
+      setGeneratedLink(`${origin}/checkout/${id}`)
+    } catch (err) {
+      setError(err.message || 'Failed to create payment link. Try again.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -77,6 +96,21 @@ function CreatePaymentLink() {
 
           <div>
             <label className="block text-sm text-[var(--text)] mb-1.5">
+              Buyer Phone Number
+            </label>
+            <input
+              type="tel"
+              name="buyerPhone"
+              value={formData.buyerPhone}
+              onChange={handleChange}
+              required
+              className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-h)] focus:outline-none focus:border-[var(--brand)]"
+              placeholder="+2519..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-[var(--text)] mb-1.5">
               Description (Optional)
             </label>
             <textarea
@@ -103,11 +137,18 @@ function CreatePaymentLink() {
             />
           </div>
 
+          {error && (
+            <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white font-semibold py-3.5 rounded-xl transition-colors mt-2"
+            disabled={busy}
+            className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl transition-colors mt-2"
           >
-            Generate Payment Link
+            {busy ? 'Creating…' : 'Generate Payment Link'}
           </button>
         </form>
 
@@ -120,9 +161,7 @@ function CreatePaymentLink() {
               Share this link with your buyer
             </p>
             <div className="flex items-center justify-between bg-[var(--brand-soft)] border border-[var(--brand-border)] rounded-xl px-4 py-3 mb-4">
-              {/* TEMP: real link points to /checkout so you can test the buyer flow.
-                  In production this URL will contain a real transaction ID from Django. */}
-              <a href="/checkout" className="text-[var(--brand)] text-sm break-all hover:underline">
+              <a href={generatedLink} className="text-[var(--brand)] text-sm break-all hover:underline">
                 {generatedLink}
               </a>
               <button
