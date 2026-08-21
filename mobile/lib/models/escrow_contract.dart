@@ -1,3 +1,5 @@
+import '../data/phone.dart';
+
 class EscrowContract {
   const EscrowContract({
     required this.id,
@@ -35,6 +37,10 @@ class EscrowContract {
       status == 'FUNDED' ||
       status == 'IN_TRANSIT' ||
       status == 'DELIVERED_UNVERIFIED';
+
+  bool isPurchaseFor(String phone) => sameEtPhone(buyerPhone, phone);
+
+  bool isSaleFor(String phone) => sameEtPhone(sellerPhone, phone);
 
   String get statusLabel => status.replaceAll('_', ' ');
 

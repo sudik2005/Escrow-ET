@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../data/phone.dart';
 import '../../fayda/fayda_decoder.dart';
 import '../../state/auth_controller.dart';
 import '../../theme/app_colors.dart';
@@ -38,7 +39,7 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
     setState(() => _localError = null);
     await ref.read(authControllerProvider.notifier).registerWithFayda(
           rawPayload: widget.fayda.rawPayload,
-          phoneNumber: phone,
+          phoneNumber: normalizeEtPhone(phone),
           role: _role,
         );
   }

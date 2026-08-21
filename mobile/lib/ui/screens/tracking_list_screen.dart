@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/escrow_contract.dart';
+import '../../state/auth_controller.dart';
 import '../../state/escrow_controller.dart';
 import '../../theme/app_colors.dart';
 import '../widgets/accent_card.dart';
@@ -17,6 +18,8 @@ class TrackingListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final list = ref.watch(escrowListProvider);
+    final phone =
+        ref.watch(authControllerProvider).session?.user.phoneNumber ?? '';
 
     return Column(
       children: [
@@ -30,7 +33,9 @@ class TrackingListScreen extends ConsumerWidget {
               onRetry: () => ref.invalidate(escrowListProvider),
             ),
             data: (contracts) {
-              if (contracts.isEmpty) {
+              final mine =
+                  contracts.where((c) => c.isSaleFor(phone)).toList();
+              if (mine.isEmpty) {
                 return _EmptyState();
               }
               return RefreshIndicator(
@@ -41,11 +46,11 @@ class TrackingListScreen extends ConsumerWidget {
                 child: ListView.separated(
                   padding:
                       const EdgeInsets.fromLTRB(24, 8, 24, 32),
-                  itemCount: contracts.length,
+                  itemCount: mine.length,
                   separatorBuilder: (_, _) =>
                       const SizedBox(height: 10),
                   itemBuilder: (_, i) =>
-                      _TrackRow(contract: contracts[i]),
+                      _TrackRow(contract: mine[i]),
                 ),
               );
             },

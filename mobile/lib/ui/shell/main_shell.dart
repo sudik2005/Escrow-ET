@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/auth_controller.dart';
+import '../../state/escrow_controller.dart';
 import '../../theme/app_colors.dart';
 import '../screens/buyer_home_screen.dart';
 import '../screens/buyer_scan_tab.dart';
@@ -11,11 +12,36 @@ import '../screens/payments_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/tracking_list_screen.dart';
 
-class MainShell extends ConsumerWidget {
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(escrowListProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final dark = AppColors.isDark(context);
     final user = ref.watch(authControllerProvider).session?.user;
     final isBuyer = user?.isBuyer ?? false;
@@ -61,8 +87,10 @@ class _SellerShell extends ConsumerWidget {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
-        onDestinationSelected: (i) =>
-            ref.read(shellTabProvider.notifier).state = i,
+        onDestinationSelected: (i) {
+          ref.read(shellTabProvider.notifier).state = i;
+          ref.invalidate(escrowListProvider);
+        },
         backgroundColor: dark
             ? AppColors.darkContainer.withValues(alpha: 0.96)
             : AppColors.snow,
@@ -123,8 +151,10 @@ class _BuyerShell extends ConsumerWidget {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
-        onDestinationSelected: (i) =>
-            ref.read(shellTabProvider.notifier).state = i,
+        onDestinationSelected: (i) {
+          ref.read(shellTabProvider.notifier).state = i;
+          ref.invalidate(escrowListProvider);
+        },
         backgroundColor: dark
             ? AppColors.darkContainer.withValues(alpha: 0.96)
             : AppColors.snow,

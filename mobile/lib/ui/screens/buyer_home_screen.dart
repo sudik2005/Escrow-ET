@@ -49,28 +49,56 @@ class BuyerHomeScreen extends ConsumerWidget {
                   ),
                 ),
                 data: (contracts) {
-                  if (contracts.isEmpty) {
-                    return _EmptyState(dark: dark);
-                  }
+              final phone = user?.phoneNumber ?? '';
+              final mine = phone.isEmpty
+                  ? contracts
+                  : contracts
+                      .where((c) => c.isPurchaseFor(phone))
+                      .toList();
+              if (mine.isEmpty) {
+                return RefreshIndicator(
+                  color: AppColors.crimson,
+                  onRefresh: () async {
+                    ref.invalidate(escrowListProvider);
+                    await ref.read(escrowListProvider.future);
+                  },
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.55,
+                        child: _EmptyState(dark: dark),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-                  final pending = contracts
+                  final pending = mine
                       .where((c) => c.isPendingPayment)
                       .toList();
-                  final active = contracts
-                      .where((c) => c.isFunded || c.isInTransit)
+                  final active = mine
+                      .where((c) =>
+                          c.isFunded ||
+                          c.isInTransit ||
+                          c.status == 'DELIVERED_UNVERIFIED')
                       .toList();
-                  final done = contracts
+                  final done = mine
                       .where(
                         (c) =>
                             c.status == 'COMPLETED' ||
                             c.status == 'REFUNDED' ||
-                            c.status == 'DISPUTED',
+                            c.status == 'DISPUTED' ||
+                            c.status == 'CANCELLED',
                       )
                       .toList();
 
                   return RefreshIndicator(
                     color: AppColors.crimson,
-                    onRefresh: () async => ref.invalidate(escrowListProvider),
+                    onRefresh: () async {
+                      ref.invalidate(escrowListProvider);
+                      await ref.read(escrowListProvider.future);
+                    },
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
                       children: [
