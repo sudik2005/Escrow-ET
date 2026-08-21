@@ -5,6 +5,8 @@ import AppLayout from '../components/layout/AppLayout';
 import ProtectedRoute from '../components/auth/ProtectedRoute';
 
 import LandingPage from '../pages/LandingPage';
+import LoginPage from '../pages/LoginPage';
+import RegisterPage from '../pages/RegisterPage';
 import DeveloperSettings from '../pages/DeveloperSettings';
 import DeveloperDocs from '../pages/DeveloperDocs';
 import CreatePaymentLink from '../pages/CreatePaymentLink';
@@ -56,16 +58,15 @@ function AppRoutes() {
         element={<LandingPage />}
       />
 
-      {/* Buyer-facing routes */}
-      <Route
-        path="/checkout"
-        element={<Checkout />}
-      />
+      {/* Auth */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-      <Route
-        path="/payment"
-        element={<Payment />}
-      />
+      {/* Buyer-facing routes (public — buyer clicks a shared link) */}
+      <Route path="/checkout/:contractId" element={<Checkout />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/payment/:contractId" element={<Payment />} />
+      <Route path="/payment" element={<Payment />} />
 
       <Route
         path="/payment-success"
@@ -76,8 +77,7 @@ function AppRoutes() {
       {/* =====================================================
           PROTECTED MERCHANT ROUTES
       ====================================================== */}
-//put element={<ProtectedRoute />} in this route
-      <Route>
+      <Route element={<ProtectedRoute />}>
 
         <Route
           path="/dashboard"

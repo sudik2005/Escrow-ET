@@ -1,82 +1,45 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./MerchantDashboard.css";
+import { useAuth } from "../context/AuthContext";
+import * as api from "../lib/api";
 
-const summaryCards = [
-  {
-    title: "Total Balance",
-    value: "12,450 ETB",
-    icon: "account_balance_wallet",
-    variant: "primary",
-  },
-  {
-    title: "Locked Funds",
-    value: "3,500 ETB",
-    icon: "lock",
-    variant: "secondary",
-  },
-  {
-    title: "Total Released",
-    value: "8,950 ETB",
-    icon: "check_circle",
-    variant: "primary",
-  },
-  {
-    title: "Total Transactions",
-    value: "24",
-    icon: "receipt_long",
-    variant: "neutral",
-  },
-];
+function fmtEtb(n) {
+  return `${Number(n).toLocaleString("en-ET", { minimumFractionDigits: 2 })} ETB`;
+}
 
-const transactions = [
-  {
-    id: "ET-10294",
-    title: "Yirgacheffe Coffee",
-    buyer: "Buno Coffee",
-    amount: "500 ETB",
-    status: "Locked",
-    date: "12 Aug 2026, 10:30 AM",
-    icon: "shopping_bag",
-    variant: "locked",
-  },
-  {
-    id: "ET-10093",
-    title: "Shoes Order",
-    buyer: "Abebe",
-    amount: "1,200 ETB",
-    status: "Released",
-    date: "11 Aug 2026, 10:30 AM",
-    icon: "shopping_bag",
-    variant: "released",
-  },
-  {
-    id: "ET-10292",
-    title: "Website Design",
-    buyer: "Kebede",
-    amount: "3,000 ETB",
-    status: "Disputed",
-    date: "12 Aug 2026, 10:30 AM",
-    icon: "warning",
-    variant: "disputed",
-  },
-];
+function statusVariant(status) {
+  if (!status) return "locked";
+  const s = status.toLowerCase();
+  if (s.includes("released")) return "released";
+  if (s.includes("funded") || s.includes("locked")) return "locked";
+  if (s.includes("disputed")) return "disputed";
+  return "locked";
+}
 
-const paymentLinks = [
-  {
-    title: "Coffee Beans",
-    url: "escrow-et.com/pay/lk-29x",
-    amount: "500 ETB",
-    date: "12 Aug",
-  },
-];
-
-const disputes = [
-  {
-    id: "ET-10292",
-    title: "Website Design",
-    amount: "3,000 ETB",
-    status: "Open",
-  },
-];
+function contractToRow(c) {
+  const variant = statusVariant(c.status);
+  const status = variant.charAt(0).toUpperCase() + variant.slice(1);
+  return {
+    id: `ET-${c.id}`,
+    rawId: c.id,
+    title: c.item_name || "—",
+    buyer: c.buyer_username || c.buyer_phone || "—",
+    amount: fmtEtb(c.amount),
+    status,
+    date: c.created_at
+      ? new Date(c.created_at).toLocaleString("en-ET", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "—",
+    icon: variant === "disputed" ? "warning" : "shopping_bag",
+    variant,
+  };
+}
 
 function Icon({ children, className = "" }) {
   return (
@@ -110,7 +73,7 @@ function StatusBadge({ status, variant }) {
   );
 }
 
-function TransactionsTable() {
+function TransactionsTable({ rows = [] }) {
   return (
     <section className="dashboard-section transactions-section">
       <div className="section-header">
@@ -125,79 +88,83 @@ function TransactionsTable() {
         </a>
       </div>
 
-      <div className="transactions-table-wrapper">
-        <table className="transactions-table">
-          <thead>
-            <tr>
-              <th className="type-column">Type</th>
-              <th>ID</th>
-              <th>Details</th>
-              <th className="amount-column">Amount</th>
-              <th className="status-column">Status</th>
-              <th className="date-column">Date</th>
-              <th className="action-column" />
-            </tr>
-          </thead>
-
-          <tbody>
-            {transactions.map((transaction) => (
-              <tr key={transaction.id}>
-                <td className="type-column">
-                  <div className={`transaction-icon ${transaction.variant}`}>
-                    <Icon>{transaction.icon}</Icon>
-                  </div>
-                </td>
-
-                <td>
-                  <span className="transaction-id">
-                    {transaction.id}
-                  </span>
-                </td>
-
-                <td>
-                  <p className="transaction-title">
-                    {transaction.title}
-                  </p>
-
-                  <p className="transaction-buyer">
-                    Buyer: {transaction.buyer}
-                  </p>
-                </td>
-
-                <td className="amount-column transaction-amount">
-                  {transaction.amount}
-                </td>
-
-                <td className="status-column">
-                  <StatusBadge
-                    status={transaction.status}
-                    variant={transaction.variant}
-                  />
-                </td>
-
-                <td className="date-column transaction-date">
-                  {transaction.date}
-                </td>
-
-                <td className="transaction-action">
-                  <button
-                    type="button"
-                    aria-label={`View ${transaction.id}`}
-                    title={`View ${transaction.id}`}
-                  >
-                    <Icon>chevron_right</Icon>
-                  </button>
-                </td>
+      {rows.length === 0 ? (
+        <p className="text-center text-sm text-[var(--text-muted)] py-8">No transactions yet.</p>
+      ) : (
+        <div className="transactions-table-wrapper">
+          <table className="transactions-table">
+            <thead>
+              <tr>
+                <th className="type-column">Type</th>
+                <th>ID</th>
+                <th>Details</th>
+                <th className="amount-column">Amount</th>
+                <th className="status-column">Status</th>
+                <th className="date-column">Date</th>
+                <th className="action-column" />
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+
+            <tbody>
+              {rows.map((transaction) => (
+                <tr key={transaction.id}>
+                  <td className="type-column">
+                    <div className={`transaction-icon ${transaction.variant}`}>
+                      <Icon>{transaction.icon}</Icon>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span className="transaction-id">
+                      {transaction.id}
+                    </span>
+                  </td>
+
+                  <td>
+                    <p className="transaction-title">
+                      {transaction.title}
+                    </p>
+
+                    <p className="transaction-buyer">
+                      Buyer: {transaction.buyer}
+                    </p>
+                  </td>
+
+                  <td className="amount-column transaction-amount">
+                    {transaction.amount}
+                  </td>
+
+                  <td className="status-column">
+                    <StatusBadge
+                      status={transaction.status}
+                      variant={transaction.variant}
+                    />
+                  </td>
+
+                  <td className="date-column transaction-date">
+                    {transaction.date}
+                  </td>
+
+                  <td className="transaction-action">
+                    <a
+                      href={`/transactions?id=${transaction.rawId}`}
+                      aria-label={`View ${transaction.id}`}
+                      title={`View ${transaction.id}`}
+                    >
+                      <Icon>chevron_right</Icon>
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 }
 
-function PaymentLinks() {
+function PaymentLinks({ links = [] }) {
   return (
     <section className="dashboard-section bottom-section-card">
       <div className="section-header">
@@ -213,39 +180,43 @@ function PaymentLinks() {
       </div>
 
       <div className="bottom-card-content">
-        {paymentLinks.map((paymentLink) => (
-          <div
-            className="payment-link-item"
-            key={paymentLink.url}
-          >
-            <div className="payment-link-information">
-              <div className="payment-link-icon">
-                <Icon>link</Icon>
+        {links.length === 0 ? (
+          <p className="text-sm text-[var(--text-muted)] py-4 text-center">No open payment links.</p>
+        ) : (
+          links.map((paymentLink) => (
+            <div
+              className="payment-link-item"
+              key={paymentLink.url}
+            >
+              <div className="payment-link-information">
+                <div className="payment-link-icon">
+                  <Icon>link</Icon>
+                </div>
+
+                <div className="payment-link-details">
+                  <p className="payment-link-title">
+                    {paymentLink.title}
+                  </p>
+
+                  <p className="payment-link-url">
+                    {paymentLink.url}
+                  </p>
+                </div>
               </div>
 
-              <div className="payment-link-details">
-                <p className="payment-link-title">
-                  {paymentLink.title}
-                </p>
-
-                <p className="payment-link-url">
-                  {paymentLink.url}
-                </p>
+              <div className="payment-link-value">
+                <strong>{paymentLink.amount}</strong>
+                <span>{paymentLink.date}</span>
               </div>
             </div>
-
-            <div className="payment-link-value">
-              <strong>{paymentLink.amount}</strong>
-              <span>{paymentLink.date}</span>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </section>
   );
 }
 
-function Disputes() {
+function Disputes({ items = [] }) {
   return (
     <section className="dashboard-section bottom-section-card">
       <div className="section-header">
@@ -261,37 +232,41 @@ function Disputes() {
       </div>
 
       <div className="bottom-card-content">
-        {disputes.map((dispute) => (
-          <div
-            className="dispute-item"
-            key={dispute.id}
-          >
-            <div className="dispute-information">
-              <div className="dispute-icon">
-                <Icon>gavel</Icon>
+        {items.length === 0 ? (
+          <p className="text-sm text-[var(--text-muted)] py-4 text-center">No active disputes.</p>
+        ) : (
+          items.map((dispute) => (
+            <div
+              className="dispute-item"
+              key={dispute.id}
+            >
+              <div className="dispute-information">
+                <div className="dispute-icon">
+                  <Icon>gavel</Icon>
+                </div>
+
+                <div>
+                  <p className="dispute-id">
+                    {dispute.id}
+                  </p>
+
+                  <p className="dispute-title">
+                    {dispute.title}
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <p className="dispute-id">
-                  {dispute.id}
-                </p>
+              <div className="dispute-value">
+                <strong>{dispute.amount}</strong>
 
-                <p className="dispute-title">
-                  {dispute.title}
-                </p>
+                <button type="button">
+                  {dispute.status}
+                  <Icon>arrow_forward</Icon>
+                </button>
               </div>
             </div>
-
-            <div className="dispute-value">
-              <strong>{dispute.amount}</strong>
-
-              <button type="button">
-                {dispute.status}
-                <Icon>arrow_forward</Icon>
-              </button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </section>
   );
@@ -313,6 +288,86 @@ function Footer() {
 }
 
 export default function MerchantDashboard() {
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
+  const [contracts, setContracts] = useState([]);
+  const [loadingContracts, setLoadingContracts] = useState(true);
+
+  useEffect(() => {
+    if (!token) return;
+    api
+      .mineContracts(token)
+      .then((data) => setContracts(Array.isArray(data) ? data : []))
+      .catch(() => setContracts([]))
+      .finally(() => setLoadingContracts(false));
+  }, [token]);
+
+  // Compute summary from real contracts
+  const locked = contracts
+    .filter((c) => {
+      const s = (c.status || "").toLowerCase();
+      return s.includes("funded") || s.includes("locked");
+    })
+    .reduce((sum, c) => sum + Number(c.amount), 0);
+
+  const released = contracts
+    .filter((c) => (c.status || "").toLowerCase().includes("released"))
+    .reduce((sum, c) => sum + Number(c.amount), 0);
+
+  const summaryCards = [
+    {
+      title: "Total Balance",
+      value: fmtEtb(locked + released),
+      icon: "account_balance_wallet",
+      variant: "primary",
+    },
+    {
+      title: "Locked Funds",
+      value: fmtEtb(locked),
+      icon: "lock",
+      variant: "secondary",
+    },
+    {
+      title: "Total Released",
+      value: fmtEtb(released),
+      icon: "check_circle",
+      variant: "primary",
+    },
+    {
+      title: "Total Transactions",
+      value: String(contracts.length),
+      icon: "receipt_long",
+      variant: "neutral",
+    },
+  ];
+
+  const rows = contracts.slice(0, 10).map(contractToRow);
+
+  const paymentLinks = contracts
+    .filter((c) => (c.status || "").toLowerCase() === "created")
+    .slice(0, 5)
+    .map((c) => ({
+      title: c.item_name || "Payment",
+      url: `${window.location.origin}/checkout/${c.id}`,
+      amount: fmtEtb(c.amount),
+      date: c.created_at
+        ? new Date(c.created_at).toLocaleDateString("en-ET", {
+            day: "2-digit",
+            month: "short",
+          })
+        : "—",
+    }));
+
+  const disputes = contracts
+    .filter((c) => (c.status || "").toLowerCase().includes("disputed"))
+    .slice(0, 5)
+    .map((c) => ({
+      id: `ET-${c.id}`,
+      title: c.item_name || "—",
+      amount: fmtEtb(c.amount),
+      status: "Open",
+    }));
+
   return (
     <div className="merchant-dashboard">
       <div className="dashboard-content">
@@ -324,7 +379,7 @@ export default function MerchantDashboard() {
             </p>
 
             <h1 className="dashboard-greeting">
-              Hello, Bereket <span>👋</span>
+              Hello, {user?.username || "there"} <span>👋</span>
             </h1>
 
             <p className="dashboard-subtitle">
@@ -332,13 +387,14 @@ export default function MerchantDashboard() {
             </p>
           </div>
 
-          <a
-            href="/payment-links"
+          <button
+            type="button"
             className="create-payment-button"
+            onClick={() => navigate("/payment-links")}
           >
             <Icon>add</Icon>
             Create Payment Link
-          </a>
+          </button>
         </div>
 
         <section className="summary-grid">
@@ -350,12 +406,19 @@ export default function MerchantDashboard() {
           ))}
         </section>
 
-        <TransactionsTable />
-
-        <div className="bottom-grid">
-          <PaymentLinks />
-          <Disputes />
-        </div>
+        {loadingContracts ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-2 border-[var(--brand)] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <>
+            <TransactionsTable rows={rows} />
+            <div className="bottom-grid">
+              <PaymentLinks links={paymentLinks} />
+              <Disputes items={disputes} />
+            </div>
+          </>
+        )}
 
         <Footer />
       </div>
