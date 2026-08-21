@@ -1,207 +1,135 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../state/auth_controller.dart';
 import '../../theme/app_colors.dart';
-import '../widgets/app_controls.dart';
 import '../widgets/app_header.dart';
 
-class SettingsScreen extends ConsumerStatefulWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  late final TextEditingController _name;
-  late final TextEditingController _email;
-  late final TextEditingController _phone;
-  late final TextEditingController _bio;
-  var _push = true;
-  var _digest = false;
-  var _twoFactor = true;
-
-  @override
-  void initState() {
-    super.initState();
-    final store = ref.read(sessionStoreProvider);
-    final user = ref.read(authControllerProvider).session?.user;
-    _name = TextEditingController(text: user?.username ?? '');
-    _email = TextEditingController(text: user?.email ?? '');
-    _phone = TextEditingController(text: user?.phoneNumber ?? '');
-    _bio = TextEditingController(text: store.text('bio'));
-    _push = store.flag('push_notifications', fallback: true);
-    _digest = store.flag('email_digests');
-    _twoFactor = store.flag('two_factor', fallback: true);
-  }
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _email.dispose();
-    _phone.dispose();
-    _bio.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    final store = ref.read(sessionStoreProvider);
-    await store.setText('bio', _bio.text.trim());
-    await store.setFlag('push_notifications', _push);
-    await store.setFlag('email_digests', _digest);
-    await store.setFlag('two_factor', _twoFactor);
-    if (!mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Local preferences saved. Profile edits still go through the API.')),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = ref.watch(authControllerProvider).session?.user;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user =
+        ref.watch(authControllerProvider).session?.user;
     final isDark = ref.watch(themeControllerProvider);
     final dark = AppColors.isDark(context);
-    final roleLabel = switch (user?.role) {
-      'SELLER' => 'Seller node',
-      'BUYER' => 'Buyer node',
-      _ => user?.role ?? '',
-    };
 
     return Column(
       children: [
-        const AppHeader(title: 'Profile Settings', centerTitle: true, showAvatar: false),
+        const AppHeader(title: 'Settings'),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+            padding:
+                const EdgeInsets.fromLTRB(24, 8, 24, 40),
             children: [
-              Center(
+              // ── Account card ───────────────────────
+              _SectionLabel('ACCOUNT'),
+              const SizedBox(height: 10),
+              _InfoCard(
+                dark: dark,
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundColor: dark ? AppColors.darkContainerHigh : AppColors.lightContainer,
-                      child: Text(
-                        (user?.username.isNotEmpty ?? false) ? user!.username[0].toUpperCase() : '?',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.secondary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                    _InfoRow(
+                      icon: Icons.person_outline,
+                      label: 'Username',
+                      value: user?.username ?? '—',
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user?.username ?? '',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+                    _Divider(dark: dark),
+                    _InfoRow(
+                      icon: Icons.badge_outlined,
+                      label: 'Role',
+                      value: user?.role ?? '—',
                     ),
-                    const SizedBox(height: 4),
-                    Text(roleLabel, style: Theme.of(context).textTheme.bodySmall),
-                    if (user?.kycVerified == true)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          'KYC verified',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                        ),
-                      ),
+                    _Divider(dark: dark),
+                    _InfoRow(
+                      icon: Icons.phone_outlined,
+                      label: 'Phone',
+                      value: user?.phoneNumber ?? '—',
+                    ),
+                    _Divider(dark: dark),
+                    _InfoRow(
+                      icon: Icons.mail_outline,
+                      label: 'Email',
+                      value: user?.email.isNotEmpty == true
+                          ? user!.email
+                          : '—',
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
-              _SectionLabel('Personal Info'),
-              const SizedBox(height: 8),
-              _Group(
-                children: [
-                  _LabeledField(label: 'Full Name', icon: Icons.person_outline, controller: _name, readOnly: true),
-                  _LabeledField(
-                    label: 'Email Address',
-                    icon: Icons.mail_outline,
-                    controller: _email,
-                    readOnly: true,
-                  ),
-                  _LabeledField(label: 'Phone', icon: Icons.phone_outlined, controller: _phone, readOnly: true),
-                  _LabeledField(label: 'Bio', icon: Icons.info_outline, controller: _bio, maxLines: 3),
-                ],
+
+              const SizedBox(height: 24),
+
+              // ── Preferences ────────────────────────
+              _SectionLabel('PREFERENCES'),
+              const SizedBox(height: 10),
+              _InfoCard(
+                dark: dark,
+                child: _ToggleRow(
+                  icon: dark
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                  label: 'Dark Mode',
+                  value: isDark,
+                  onChanged: (_) => ref
+                      .read(themeControllerProvider.notifier)
+                      .toggle(),
+                ),
               ),
+
+              const SizedBox(height: 24),
+
+              // ── About ──────────────────────────────
+              _SectionLabel('ABOUT'),
+              const SizedBox(height: 10),
+              _InfoCard(
+                dark: dark,
+                child: Column(
+                  children: [
+                    _InfoRow(
+                      icon: Icons.info_outline,
+                      label: 'Version',
+                      value: '1.0.0',
+                    ),
+                    _Divider(dark: dark),
+                    _InfoRow(
+                      icon: Icons.shield_outlined,
+                      label: 'Payment',
+                      value: 'Chapa · Escrow secured',
+                    ),
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 32),
-              _SectionLabel('Security'),
-              const SizedBox(height: 8),
-              _Group(
-                children: [
-                  _RowTile(
-                    icon: Icons.password,
-                    title: 'Change Password',
-                    subtitle: 'Managed by the auth API',
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Password change is not available from the phone app yet.')),
-                      );
-                    },
-                  ),
-                  const Divider(height: 1),
-                  _RowTile(
-                    icon: Icons.shield_outlined,
-                    title: 'Two-Factor Auth',
-                    subtitle: 'Authenticator App',
-                    trailing: Switch(
-                      value: _twoFactor,
-                      onChanged: (value) => setState(() => _twoFactor = value),
+
+              // ── Sign out ───────────────────────────
+              SizedBox(
+                height: 52,
+                child: OutlinedButton(
+                  onPressed: () => ref
+                      .read(authControllerProvider.notifier)
+                      .logout(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.crimson,
+                    side: const BorderSide(
+                        color: AppColors.crimson),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              _SectionLabel('Notifications'),
-              const SizedBox(height: 8),
-              _Group(
-                children: [
-                  _RowTile(
-                    icon: Icons.notifications_active_outlined,
-                    title: 'Push Notifications',
-                    subtitle: 'Security alerts and updates',
-                    trailing: Switch(value: _push, onChanged: (value) => setState(() => _push = value)),
-                  ),
-                  const Divider(height: 1),
-                  _RowTile(
-                    icon: Icons.mark_email_unread_outlined,
-                    title: 'Email Digests',
-                    subtitle: 'Weekly performance reports',
-                    trailing: Switch(value: _digest, onChanged: (value) => setState(() => _digest = value)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              _SectionLabel('Appearance'),
-              const SizedBox(height: 8),
-              _Group(
-                children: [
-                  _RowTile(
-                    icon: Icons.dark_mode_outlined,
-                    title: 'Dark mode',
-                    subtitle: 'Crimson Matrix night protocol',
-                    trailing: Switch(
-                      value: isDark,
-                      onChanged: (_) => ref.read(themeControllerProvider.notifier).toggle(),
+                  child: Text(
+                    'SIGN OUT',
+                    style: GoogleFonts.geist(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.4,
+                      color: AppColors.crimson,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 28),
-              AppButton(
-                label: 'SAVE CHANGES',
-                icon: Icons.save_outlined,
-                onPressed: _save,
-              ),
-              const SizedBox(height: 12),
-              AppButton(
-                label: 'LOG OUT',
-                outlined: true,
-                onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+                ),
               ),
             ],
           ),
@@ -213,78 +141,84 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.text);
-
   final String text;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      text.toUpperCase(),
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: Theme.of(context).colorScheme.secondary,
+      text,
+      style: GoogleFonts.geist(
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
         letterSpacing: 1.4,
-        fontWeight: FontWeight.w500,
+        color: Theme.of(context)
+            .colorScheme
+            .onSurface
+            .withValues(alpha: 0.45),
       ),
     );
   }
 }
 
-class _Group extends StatelessWidget {
-  const _Group({required this.children});
-
-  final List<Widget> children;
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.dark, required this.child});
+  final bool dark;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final dark = AppColors.isDark(context);
-    return DecoratedBox(
+    return Container(
       decoration: BoxDecoration(
         color: dark ? AppColors.darkSurface : AppColors.snow,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: Theme.of(context).colorScheme.outline),
       ),
-      child: Column(children: children),
+      child: child,
     );
   }
 }
 
-class _LabeledField extends StatelessWidget {
-  const _LabeledField({
-    required this.label,
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
     required this.icon,
-    required this.controller,
-    this.readOnly = false,
-    this.maxLines = 1,
+    required this.label,
+    required this.value,
   });
-
-  final String label;
   final IconData icon;
-  final TextEditingController controller;
-  final bool readOnly;
-  final int maxLines;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(
+          horizontal: 16, vertical: 14),
+      child: Row(
         children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          TextField(
-            controller: controller,
-            readOnly: readOnly,
-            maxLines: maxLines,
-            decoration: InputDecoration(
-              prefixIcon: Icon(icon, size: 20),
-              filled: false,
-              border: const UnderlineInputBorder(),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-              ),
-            ),
+          Icon(
+            icon,
+            size: 18,
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withValues(alpha: 0.45),
+          ),
+          const SizedBox(width: 14),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
+                ),
           ),
         ],
       ),
@@ -292,52 +226,59 @@ class _LabeledField extends StatelessWidget {
   }
 }
 
-class _RowTile extends StatelessWidget {
-  const _RowTile({
+class _ToggleRow extends StatelessWidget {
+  const _ToggleRow({
     required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.trailing,
-    this.onTap,
+    required this.label,
+    required this.value,
+    required this.onChanged,
   });
-
   final IconData icon;
-  final String title;
-  final String subtitle;
-  final Widget trailing;
-  final VoidCallback? onTap;
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final dark = AppColors.isDark(context);
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: dark ? AppColors.darkContainer : AppColors.lightContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: Theme.of(context).textTheme.bodyMedium),
-                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
-            ),
-            trailing,
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withValues(alpha: 0.45),
+          ),
+          const SizedBox(width: 14),
+          Text(label,
+              style: Theme.of(context).textTheme.bodyMedium),
+          const Spacer(),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.crimson,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  const _Divider({required this.dark});
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 48),
+      child: Divider(
+        height: 1,
+        color: Theme.of(context).colorScheme.outline,
       ),
     );
   }

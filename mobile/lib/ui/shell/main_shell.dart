@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/auth_controller.dart';
+import '../../theme/app_colors.dart';
+import '../screens/buyer_home_screen.dart';
+import '../screens/buyer_scan_tab.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/notifications_screen.dart';
 import '../screens/payments_screen.dart';
@@ -13,29 +16,74 @@ class MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final index = ref.watch(shellTabProvider);
+    final dark = AppColors.isDark(context);
+    final user = ref.watch(authControllerProvider).session?.user;
+    final isBuyer = user?.isBuyer ?? false;
 
+    // Clamp the tab index to the number of destinations so a role-switch
+    // never leaves an out-of-bounds index in the provider.
+    final tabCount = isBuyer ? 4 : 5;
+    final rawIndex = ref.watch(shellTabProvider);
+    final index = rawIndex.clamp(0, tabCount - 1);
+    if (rawIndex != index) {
+      // Schedule correction outside the build frame
+      Future<void>.microtask(
+        () => ref.read(shellTabProvider.notifier).state = index,
+      );
+    }
+
+    return isBuyer
+        ? _BuyerShell(index: index, dark: dark)
+        : _SellerShell(index: index, dark: dark);
+  }
+}
+
+// ── Seller shell — 5 tabs ────────────────────────────────────────────────────
+class _SellerShell extends ConsumerWidget {
+  const _SellerShell({required this.index, required this.dark});
+  final int index;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: SafeArea(
         child: IndexedStack(
           index: index,
           children: const [
             DashboardScreen(),
-            NotificationsScreen(),
             PaymentsScreen(),
             TrackingListScreen(),
+            NotificationsScreen(),
             SettingsScreen(),
           ],
         ),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
-        onDestinationSelected: (value) => ref.read(shellTabProvider.notifier).state = value,
+        onDestinationSelected: (i) =>
+            ref.read(shellTabProvider.notifier).state = i,
+        backgroundColor: dark
+            ? AppColors.darkContainer.withValues(alpha: 0.96)
+            : AppColors.snow,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        indicatorColor: Colors.transparent,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: Icon(Icons.grid_view_outlined),
+            selectedIcon: Icon(Icons.grid_view),
             label: 'Dashboard',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: 'Payments',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.location_on_outlined),
+            selectedIcon: Icon(Icons.location_on),
+            label: 'Tracking',
           ),
           NavigationDestination(
             icon: Icon(Icons.notifications_outlined),
@@ -43,14 +91,61 @@ class MainShell extends ConsumerWidget {
             label: 'Alerts',
           ),
           NavigationDestination(
-            icon: Icon(Icons.payments_outlined),
-            selectedIcon: Icon(Icons.payments),
-            label: 'Payments',
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Buyer shell — 4 tabs ─────────────────────────────────────────────────────
+class _BuyerShell extends ConsumerWidget {
+  const _BuyerShell({required this.index, required this.dark});
+  final int index;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      body: SafeArea(
+        child: IndexedStack(
+          index: index,
+          children: const [
+            BuyerHomeScreen(),
+            BuyerScanTab(),
+            NotificationsScreen(),
+            SettingsScreen(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: index,
+        onDestinationSelected: (i) =>
+            ref.read(shellTabProvider.notifier).state = i,
+        backgroundColor: dark
+            ? AppColors.darkContainer.withValues(alpha: 0.96)
+            : AppColors.snow,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        indicatorColor: Colors.transparent,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.monitor_heart_outlined),
-            selectedIcon: Icon(Icons.monitor_heart),
-            label: 'Tracking',
+            icon: Icon(Icons.qr_code_scanner_outlined),
+            selectedIcon: Icon(Icons.qr_code_scanner),
+            label: 'Scan QR',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.notifications_outlined),
+            selectedIcon: Icon(Icons.notifications),
+            label: 'Alerts',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

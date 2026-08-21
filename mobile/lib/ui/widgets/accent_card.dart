@@ -9,7 +9,7 @@ class AccentCard extends StatelessWidget {
     this.onTap,
     this.stripe = false,
     this.alert = false,
-    this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 16),
+    this.padding = const EdgeInsets.all(16),
   });
 
   final Widget child;
@@ -22,55 +22,49 @@ class AccentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = AppColors.isDark(context);
     final brand = Theme.of(context).colorScheme.primary;
+    final surface = dark ? AppColors.darkSurface : AppColors.snow;
     final border = Theme.of(context).colorScheme.outline;
-    final fill = alert
-        ? brand.withValues(alpha: dark ? 0.18 : 0.08)
-        : (dark ? AppColors.darkSurface : AppColors.snow);
+    const stripeW = 3.0;
 
-    // Web cannot paint borderRadius with mixed BorderSide colors. Stripe is a
-    // separate bar so the outline stays uniform.
-    final edge = alert ? brand.withValues(alpha: 0.45) : border;
-    final stripeW = dark ? 2.0 : 3.0;
+    final fill = alert ? brand.withValues(alpha: dark ? 0.16 : 0.07) : surface;
+    final edgeColor = alert ? brand.withValues(alpha: 0.4) : border;
 
-    final card = ClipRRect(
+    final inner = Padding(
+      padding: stripe ? padding.copyWith(left: padding.left + stripeW) : padding,
+      child: child,
+    );
+
+    final decorated = ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: fill,
-          border: Border.all(color: edge),
+          border: Border.all(color: edgeColor, width: 1),
         ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: stripe
-                  ? padding.copyWith(left: padding.left + stripeW)
-                  : padding,
-              child: child,
-            ),
-            if (stripe)
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: ColoredBox(
-                  color: brand,
-                  child: SizedBox(width: stripeW),
-                ),
-              ),
-          ],
-        ),
+        child: stripe
+            ? Stack(
+                children: [
+                  inner,
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(width: stripeW, color: brand),
+                  ),
+                ],
+              )
+            : inner,
       ),
     );
 
-    if (onTap == null) {
-      return card;
-    }
+    if (onTap == null) return decorated;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: card,
+        child: decorated,
       ),
     );
   }

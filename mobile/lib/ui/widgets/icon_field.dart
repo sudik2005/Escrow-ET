@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../theme/app_colors.dart';
 
@@ -6,65 +7,66 @@ class IconField extends StatelessWidget {
   const IconField({
     super.key,
     required this.controller,
-    required this.icon,
+    required this.hint,
+    this.icon,
     this.label,
-    this.hint,
     this.obscureText = false,
     this.keyboardType,
     this.textInputAction,
     this.autofillHints,
     this.onSubmitted,
     this.suffix,
-    this.maxLines = 1,
   });
 
   final TextEditingController controller;
-  final IconData icon;
+  final String hint;
+  final IconData? icon;
   final String? label;
-  final String? hint;
   final bool obscureText;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
   final ValueChanged<String>? onSubmitted;
   final Widget? suffix;
-  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
     final dark = AppColors.isDark(context);
-    final field = TextField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      autofillHints: autofillHints,
-      onSubmitted: onSubmitted,
-      maxLines: obscureText ? 1 : maxLines,
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(icon, size: 20),
-        suffixIcon: suffix,
-        filled: true,
-        fillColor: dark ? AppColors.darkContainer : AppColors.snow,
-      ),
-    );
-    if (label == null) {
-      return field;
-    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label!,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.8,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+        if (label != null) ...[
+          Text(
+            label!,
+            style: GoogleFonts.geist(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.0,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        TextField(
+          controller: controller,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          autofillHints: autofillHints,
+          onSubmitted: onSubmitted,
+          style: TextStyle(
+            color: dark ? AppColors.darkTextH : AppColors.lightTextH,
+            fontSize: 15,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: icon != null
+                ? Icon(icon, size: 19, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45))
+                : null,
+            suffixIcon: suffix,
           ),
         ),
-        const SizedBox(height: 8),
-        field,
       ],
     );
   }

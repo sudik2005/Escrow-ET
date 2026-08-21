@@ -128,6 +128,34 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  Future<void> updateProfile({String? username, String? role}) async {
+    final session = state.session;
+    if (session == null) return;
+    state = state.copyWith(busy: true, clearError: true);
+    try {
+      final user = await _api.updateProfile(
+        session.token,
+        username: username,
+        role: role,
+      );
+      final next = AuthSession(token: session.token, user: user);
+      await _store.save(next);
+      if (!_alive) return;
+      if (role != null) {
+        ref.read(shellTabProvider.notifier).state = 0;
+      }
+      state = AuthState(status: AuthStatus.signedIn, session: next);
+    } on ApiException catch (error) {
+      if (!_alive) return;
+      state = state.copyWith(busy: false, error: error.message);
+      rethrow;
+    } catch (_) {
+      if (!_alive) return;
+      state = state.copyWith(busy: false);
+      rethrow;
+    }
+  }
+
   Future<void> refreshUser() async {
     final session = state.session;
     if (session == null) {

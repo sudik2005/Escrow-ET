@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'accent_card.dart';
-import 'app_controls.dart';
 
 class ListError extends StatelessWidget {
   const ListError({super.key, required this.message, required this.onRetry});
@@ -12,16 +11,22 @@ class ListError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      padding: const EdgeInsets.all(24),
       children: [
         AccentCard(
           alert: true,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(message, style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 16),
-              AppButton(label: 'TRY AGAIN', outlined: true, onPressed: onRetry),
+              Text(
+                message,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: onRetry,
+                child: const Text('TRY AGAIN'),
+              ),
             ],
           ),
         ),
