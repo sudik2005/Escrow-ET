@@ -20,13 +20,11 @@ class BuyerHomeScreen extends ConsumerWidget {
     final asyncContracts = ref.watch(escrowListProvider);
     final user = ref.watch(authControllerProvider).session?.user;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const AppHeader(title: 'My Orders'),
-            Expanded(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppHeader(title: 'My Orders'),
+        Expanded(
               child: asyncContracts.when(
                 loading: () => const Center(
                   child: CircularProgressIndicator(
@@ -156,9 +154,7 @@ class BuyerHomeScreen extends ConsumerWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
+        );
   }
 }
 
