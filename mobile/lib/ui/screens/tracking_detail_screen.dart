@@ -27,7 +27,6 @@ class TrackingDetailScreen extends ConsumerStatefulWidget {
 class _TrackingDetailScreenState
     extends ConsumerState<TrackingDetailScreen> {
   late EscrowContract _contract;
-  final _pin = TextEditingController();
   final _reason = TextEditingController();
   var _busy = false;
 
@@ -48,7 +47,6 @@ class _TrackingDetailScreenState
 
   @override
   void dispose() {
-    _pin.dispose();
     _reason.dispose();
     super.dispose();
   }

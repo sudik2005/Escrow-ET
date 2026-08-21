@@ -74,12 +74,10 @@ class _BuyerScanTabState extends ConsumerState<BuyerScanTab> {
   Widget build(BuildContext context) {
     final dark = AppColors.isDark(context);
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const AppHeader(title: 'Scan QR', showAvatar: false),
-            Expanded(
+    return Column(
+      children: [
+        const AppHeader(title: 'Scan QR', showAvatar: false),
+        Expanded(
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -173,9 +171,7 @@ class _BuyerScanTabState extends ConsumerState<BuyerScanTab> {
               ),
             ),
           ],
-        ),
-      ),
-    );
+      );
   }
 }
 
@@ -183,7 +179,6 @@ class _BuyerScanTabState extends ConsumerState<BuyerScanTab> {
 class _FramePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    const len = 24.0;
     const w = 3.0;
     const r = 10.0;
     final paint = Paint()
@@ -204,15 +199,11 @@ class _FramePainter extends CustomPainter {
     ];
 
     for (final pts in corners) {
-      final arm = len;
-      final path = Path();
-      // draw bracket arm + corner
-      path.moveTo(pts[0].dx, pts[0].dy);
-      path.lineTo(pts[1].dx, pts[1].dy);
-      path.lineTo(pts[2].dx, pts[2].dy);
+      final path = Path()
+        ..moveTo(pts[0].dx, pts[0].dy)
+        ..lineTo(pts[1].dx, pts[1].dy)
+        ..lineTo(pts[2].dx, pts[2].dy);
       canvas.drawPath(path, paint);
-      // suppress unused warning
-      arm.toString();
     }
   }
 

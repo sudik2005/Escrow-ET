@@ -104,7 +104,7 @@ class NotificationsScreen extends ConsumerWidget {
       }
     }
     // urgent first
-    alerts.sort((a, b) => b.urgent ? 1 : -1);
+    alerts.sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
     return alerts;
   }
 }

@@ -63,7 +63,10 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request.user.auth_token.delete()
+        try:
+            request.user.auth_token.delete()
+        except Exception:
+            pass
         return Response({"message": "Logged out"})
 
 
@@ -134,8 +137,8 @@ def _try_initiate_chapa_payment(request, contract):
             tx_ref=tx_ref,
             callback_url=callback_url,
             return_url=callback_url,
-            first_name=contract.buyer.first_name,
-            last_name=contract.buyer.last_name,
+            first_name=contract.buyer.first_name or contract.buyer.username or "Buyer",
+            last_name=contract.buyer.last_name or contract.buyer.phone_number or "User",
         )
     except chapa.ChapaError:
         return  # contract still exists, payment_link stays null
