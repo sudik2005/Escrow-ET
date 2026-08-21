@@ -249,15 +249,26 @@ class SandboxFundView(APIView):
 # 2. List my escrows
 
 class MyEscrowContractsView(APIView):
-    """GET /api/escrow/mine/ - contracts where the user is buyer OR seller."""
+    """
+    GET /api/escrow/mine/
+    Returns contracts scoped to the user's *current* role so that switching
+    roles shows a clean slate.  Sellers see contracts where they are the
+    seller; everyone else sees contracts where they are the buyer.
+    """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        contracts = EscrowContract.objects.filter(
-            models.Q(buyer=request.user) | models.Q(seller=request.user)
-        ).order_by("-created_at")
-        return Response(EscrowContractSerializer(contracts, many=True).data)
+        user = request.user
+        if user.role == user.Role.SELLER:
+            contracts = EscrowContract.objects.filter(seller=user)
+        else:
+            contracts = EscrowContract.objects.filter(buyer=user)
+        return Response(
+            EscrowContractSerializer(
+                contracts.order_by("-created_at"), many=True
+            ).data
+        )
 
 
 
