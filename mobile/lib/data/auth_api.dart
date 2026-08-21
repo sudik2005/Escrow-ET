@@ -19,6 +19,15 @@ class AuthApi {
     );
   }
 
+  Future<AuthSession> loginWithFayda({required String rawPayload}) {
+    return _sessionFrom(
+      _client.post(
+        '/auth/login/',
+        body: {'raw_payload': rawPayload},
+      ),
+    );
+  }
+
   Future<AuthSession> register({
     required String username,
     required String password,
@@ -35,6 +44,23 @@ class AuthApi {
           'phone_number': phoneNumber,
           'role': role,
           'email': email,
+        },
+      ),
+    );
+  }
+
+  Future<AuthSession> registerWithFayda({
+    required String rawPayload,
+    required String phoneNumber,
+    required String role,
+  }) {
+    return _sessionFrom(
+      _client.post(
+        '/auth/register/',
+        body: {
+          'raw_payload': rawPayload,
+          'phone_number': phoneNumber,
+          'role': role,
         },
       ),
     );

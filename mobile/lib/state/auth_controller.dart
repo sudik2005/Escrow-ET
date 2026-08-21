@@ -100,6 +100,12 @@ class AuthController extends Notifier<AuthState> {
     );
   }
 
+  Future<void> loginWithFayda({required String rawPayload}) {
+    return _authenticate(
+      () => _api.loginWithFayda(rawPayload: rawPayload),
+    );
+  }
+
   Future<void> register({
     required String username,
     required String password,
@@ -114,6 +120,20 @@ class AuthController extends Notifier<AuthState> {
         phoneNumber: phoneNumber,
         role: role,
         email: email,
+      ),
+    );
+  }
+
+  Future<void> registerWithFayda({
+    required String rawPayload,
+    required String phoneNumber,
+    required String role,
+  }) {
+    return _authenticate(
+      () => _api.registerWithFayda(
+        rawPayload: rawPayload,
+        phoneNumber: phoneNumber,
+        role: role,
       ),
     );
   }

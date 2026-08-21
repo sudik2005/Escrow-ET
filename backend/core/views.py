@@ -12,10 +12,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from . import chapa
+from .fayda import FaydaError, verify_and_decode
 from .models import (
     Dispute,
     EscrowContract,
     PaymentTransaction,
+    User,
     record_escrow_funded,
     record_escrow_released,
 )
@@ -47,6 +49,9 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        raw_payload = request.data.get("raw_payload")
+        if raw_payload:
+            return self._login_with_fayda(raw_payload)
         username = request.data.get("username", "")
         password = request.data.get("password", "")
         user = authenticate(request, username=username, password=password)
@@ -54,6 +59,24 @@ class LoginView(APIView):
             return Response(
                 {"error": "Invalid username or password"},
                 status=status.HTTP_401_UNAUTHORIZED,
+            )
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({"token": token.key, "user": UserSerializer(user).data})
+
+    def _login_with_fayda(self, raw_payload):
+        try:
+            identity = verify_and_decode(raw_payload)
+        except FaydaError as exc:
+            return Response(
+                {"error": str(exc)},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        try:
+            user = User.objects.get(fayda_number=identity.fan)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "No account for this Fayda ID. Sign up first."},
+                status=status.HTTP_404_NOT_FOUND,
             )
         token, _ = Token.objects.get_or_create(user=user)
         return Response({"token": token.key, "user": UserSerializer(user).data})

@@ -46,7 +46,9 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Scan the seller delivery QR to confirm you received the item.</string>
+	<string>Scan your Fayda ID to sign in, and scan delivery QR codes to confirm you received an item.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose a photo of the Fayda ID card QR if the camera cannot read it.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>https</string>

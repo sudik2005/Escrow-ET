@@ -17,10 +17,32 @@ from .models import (
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    list_display = ("username", "phone_number", "role", "kyc_verified", "is_staff")
-    list_filter = ("role", "kyc_verified", "is_staff")
+    list_display = (
+        "username",
+        "legal_name",
+        "phone_number",
+        "fayda_number",
+        "role",
+        "kyc_verified",
+        "is_staff",
+    )
+    list_filter = ("role", "kyc_verified", "gender", "is_staff")
+    search_fields = ("username", "legal_name", "phone_number", "fayda_number")
     fieldsets = DjangoUserAdmin.fieldsets + (
-        ("Escrow ET info", {"fields": ("phone_number", "role", "kyc_verified")}),
+        (
+            "Escrow ET info",
+            {
+                "fields": (
+                    "phone_number",
+                    "role",
+                    "kyc_verified",
+                    "fayda_number",
+                    "legal_name",
+                    "gender",
+                    "date_of_birth",
+                )
+            },
+        ),
     )
 
 
