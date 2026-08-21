@@ -45,6 +45,22 @@ class AuthApi {
     return User.fromJson(json);
   }
 
+  Future<User> updateProfile(
+    String token, {
+    String? username,
+    String? role,
+  }) async {
+    final json = await _client.patch(
+      '/auth/me/',
+      token: token,
+      body: {
+        if (username != null) 'username': username,
+        if (role != null) 'role': role,
+      },
+    );
+    return User.fromJson(json);
+  }
+
   Future<void> logout(String token) async {
     try {
       await _client.post('/auth/logout/', token: token);
