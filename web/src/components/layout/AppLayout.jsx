@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './AppLayout.css';
-
+import { useLocation } from 'react-router-dom';
 const AppLayout = ({ children }) => {
   // Sidebar is open by default on desktop
   // and closed by default on mobile/tablet.
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 1024;
@@ -61,10 +63,11 @@ const AppLayout = ({ children }) => {
         }`}
       >
         {/* Header */}
-        <Header
+        {!isAdminPage &&(
+          <Header
           sidebarOpen={sidebarOpen}
           setSidebarOpen={toggleSidebar}
-        />
+        />)}
 
         {/* Main Content */}
         <main
@@ -78,7 +81,8 @@ const AppLayout = ({ children }) => {
             }
           }}
         >
-          {children}
+          {React.isValidElement(children)? React.cloneElement(children, {sidebarOpen, toggleSidebar,})
+  : children}
         </main>
       </div>
     </div>
