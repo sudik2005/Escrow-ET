@@ -1,5 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
-
+import DisputeForm from '../components/disputes/DisputeForm'
+import DisputeMessages from '../components/disputes/DisputeMessages'
+import AdminDashboard from '../components/admin/AdminDashboard'
+import AdminDisputes from '../components/admin/AdminDisputes'
+import AdminDisputeDtails from '../components/admin/AdminDisputeDetails'
 function PlaceholderPage({ title, description }) {
   return (
     <section className="page-placeholder">
@@ -16,7 +20,7 @@ function PlaceholderPage({ title, description }) {
   )
 }
 
-function AppRoutes() {
+function AppRoutes({sidebarOpen, toggleSidebar}) {
   return (
     <Routes>
       <Route
@@ -52,13 +56,40 @@ function AppRoutes() {
       <Route
         path="/disputes"
         element={
-          <PlaceholderPage
+          <DisputeForm
             title="Disputes"
             description="Dispute management will be implemented by the dispute resolution team."
           />
         }
       />
-
+      <Route 
+        path='/disputes/messages'
+        element = {
+        <DisputeMessages 
+            title = 'Disputes-Messages'
+        />}
+       />
+       <Route 
+          path = '/admin' 
+          element = {
+          <AdminDashboard
+            title = 'Admin-Dashboard'
+            sidebarOpen = {sidebarOpen}
+            toggleSidebar = {toggleSidebar} />
+        }
+       />
+       <Route 
+          path = '/admin/disputes'
+          element = {
+            <AdminDisputes 
+            sidebarOpen = {sidebarOpen}
+            toggleSidebar = {toggleSidebar} />
+          } 
+        />
+        <Route 
+          path='/admin/disputes/:disputeId'
+          element = {<AdminDisputeDtails />}
+        />
       <Route
         path="/settings/developer"
         element={
