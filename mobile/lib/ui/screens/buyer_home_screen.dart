@@ -78,7 +78,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: Text(
-                            'Hello, ${user?.username ?? 'there'}',
+                            'Hello, ${user?.firstName ?? 'there'}',
                             style: GoogleFonts.geist(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,

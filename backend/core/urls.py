@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # --- Auth (unchanged - field names untouched per Kidus's note) ---
+    # --- Auth (Fayda QR register/login; password login kept for existing users) ---
     path("auth/register/", views.RegisterView.as_view(), name="register"),
     path("auth/login/", views.LoginView.as_view(), name="login"),
     path("auth/logout/", views.LogoutView.as_view(), name="logout"),

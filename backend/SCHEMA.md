@@ -22,6 +22,10 @@ erDiagram
     varchar phone_number UK
     varchar role
     bool kyc_verified
+    varchar fayda_number UK
+    varchar legal_name
+    varchar gender
+    date date_of_birth
   }
   core_escrowcontract {
     uuid id PK
@@ -61,7 +65,7 @@ erDiagram
 
 | Table                     | Purpose                                                                                                                            |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `core_user`               | BUYER / SELLER / MERCHANT / ADMIN                                                                                                  |
+| `core_user`               | BUYER / SELLER / MERCHANT / ADMIN. Fayda signup stores `fayda_number` (unique FAN), `legal_name`, `gender`, `date_of_birth`, and sets `kyc_verified` |
 | `core_escrowcontract`     | One deal. Status: `PENDING_PAYMENT` → `FUNDED` → `IN_TRANSIT` → `DELIVERED_UNVERIFIED` → `COMPLETED` (or `DISPUTED` / `CANCELLED`) |
 | `core_dispute`            | One dispute per escrow                                                                                                             |
 | `core_disputemessage`     | Dispute thread                                                                                                                     |

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from .fayda import FaydaError, FaydaIdentity, verify_and_decode
 from .models import User, EscrowContract, PaymentTransaction
 
 
@@ -11,20 +12,29 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             "id", "username", "email", "phone_number",
             "role", "kyc_verified", "created_at", "balance",
+            "legal_name", "gender", "fayda_number",
         ]
-        read_only_fields = ["id", "kyc_verified", "created_at", "balance"]
+        read_only_fields = [
+            "id", "kyc_verified", "created_at", "balance",
+            "legal_name", "gender", "fayda_number",
+        ]
 
     def get_balance(self, obj):
         ledger_account = getattr(obj, "ledger_account", None)
         return str(ledger_account.balance) if ledger_account else "0.00"
 
 
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
+def _identity_from_payload(raw_payload: str) -> FaydaIdentity:
+    try:
+        return verify_and_decode(raw_payload)
+    except FaydaError as exc:
+        raise serializers.ValidationError({"raw_payload": str(exc)}) from exc
 
-    class Meta:
-        model = User
-        fields = ["username", "password", "email", "phone_number", "role"]
+
+class RegisterSerializer(serializers.Serializer):
+    raw_payload = serializers.CharField(write_only=True)
+    phone_number = serializers.CharField(max_length=20)
+    role = serializers.CharField()
 
     def validate_role(self, value):
         allowed = (User.Role.BUYER, User.Role.SELLER, User.Role.MERCHANT)
@@ -34,10 +44,41 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_phone_number(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Phone number is required.")
+        if User.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError(
+                "This phone number is already registered."
+            )
+        return value
+
+    def validate(self, attrs):
+        identity = _identity_from_payload(attrs["raw_payload"])
+        if User.objects.filter(fayda_number=identity.fan).exists():
+            raise serializers.ValidationError(
+                {"raw_payload": "An account already exists for this Fayda ID."}
+            )
+        attrs["identity"] = identity
+        return attrs
+
     def create(self, validated_data):
-        password = validated_data.pop("password")
-        user = User(**validated_data)
-        user.set_password(password)
+        identity: FaydaIdentity = validated_data["identity"]
+        username = identity.fan
+        if User.objects.filter(username=username).exists():
+            username = f"fayda_{identity.fan}"
+        user = User(
+            username=username,
+            phone_number=validated_data["phone_number"],
+            role=validated_data["role"],
+            fayda_number=identity.fan,
+            legal_name=identity.full_name,
+            gender=identity.gender or "",
+            date_of_birth=identity.date_of_birth,
+            kyc_verified=True,
+        )
+        user.set_unusable_password()
         user.save()
         return user
 

@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models, transaction
 
 
@@ -23,10 +23,33 @@ class User(AbstractUser):
         MERCHANT = "MERCHANT", "Merchant"
         ADMIN = "ADMIN", "Admin"
 
+    class Gender(models.TextChoices):
+        MALE = "M", "Male"
+        FEMALE = "F", "Female"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     phone_number = models.CharField(max_length=20, unique=True)
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.BUYER)
     kyc_verified = models.BooleanField(default=False)
+    fayda_number = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True,
+        db_index=True,
+        validators=[
+            RegexValidator(r"^\d{10,20}$", "Fayda number must be 10–20 digits."),
+        ],
+        help_text="Fayda Account Number from the national ID card QR.",
+    )
+    legal_name = models.CharField(max_length=255, blank=True, default="")
+    gender = models.CharField(
+        max_length=1,
+        choices=Gender.choices,
+        blank=True,
+        default="",
+    )
+    date_of_birth = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

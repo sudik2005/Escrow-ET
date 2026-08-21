@@ -33,12 +33,32 @@ class SettingsScreen extends ConsumerWidget {
                   children: [
                     _InfoRow(
                       icon: Icons.person_outline,
-                      label: 'Username',
-                      value: user?.username ?? '—',
+                      label: 'Name',
+                      value: user?.displayName ?? '—',
                     ),
                     _Divider(dark: dark),
                     _InfoRow(
                       icon: Icons.badge_outlined,
+                      label: 'Fayda number',
+                      value: user?.maskedFaydaNumber ?? '—',
+                    ),
+                    _Divider(dark: dark),
+                    _InfoRow(
+                      icon: Icons.wc_outlined,
+                      label: 'Gender',
+                      value: user?.genderLabel ?? '—',
+                    ),
+                    _Divider(dark: dark),
+                    _InfoRow(
+                      icon: Icons.verified_outlined,
+                      label: 'KYC',
+                      value: user?.kycVerified == true
+                          ? 'Verified'
+                          : 'Not verified',
+                    ),
+                    _Divider(dark: dark),
+                    _InfoRow(
+                      icon: Icons.work_outline,
                       label: 'Role',
                       value: user?.role ?? '—',
                     ),
