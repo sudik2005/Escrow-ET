@@ -84,7 +84,7 @@ function LandingPage() {
           </a>
 
           <a
-            href="/signup"
+            href="/register"
             className="landing-header__signup"
           >
             Get Started
@@ -116,7 +116,7 @@ function LandingPage() {
 
             <div className="landing-hero__actions">
               <a
-                href="/signup"
+                href="/payment-links"
                 className="landing-button landing-button--primary"
               >
                 Create Payment Link
@@ -307,7 +307,7 @@ function LandingPage() {
       you paid for and confirm delivery.
     </p>
 
-    <a href="/signup" className="landing-audience__link">
+    <a href="/register" className="landing-audience__link">
       Start as a Buyer <span aria-hidden="true">→</span>
     </a>
   </div>
@@ -322,7 +322,7 @@ function LandingPage() {
       deliver your product or service.
     </p>
 
-    <a href="/signup" className="landing-audience__link">
+    <a href="/register" className="landing-audience__link">
       Start as a Seller <span aria-hidden="true">→</span>
     </a>
   </div>
@@ -450,14 +450,14 @@ async function createDeal() {
       <div className="landing-developer__actions">
 
         <a
-          href="/signup"
+          href="/docs"
           className="landing-developer__button landing-developer__button--primary"
         >
           Read API Docs
         </a>
 
         <a
-          href="/signup"
+          href="/settings/developer"
           className="landing-developer__button landing-developer__button--secondary"
         >
           Get Sandbox Keys
@@ -520,7 +520,7 @@ async function createDeal() {
           How It Works
         </a>
 
-        <a href="/signup">
+        <a href="/payment-links">
           Payment Links
         </a>
 

@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 
 import AppLayout from '../components/layout/AppLayout';
 
@@ -68,6 +68,7 @@ function AppRoutes() {
       {/* Auth */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/signup" element={<Navigate to="/register" replace />} />
 
       {/* Buyer-facing routes (public — buyer clicks a shared link) */}
       <Route path="/checkout/:contractId" element={<Checkout />} />

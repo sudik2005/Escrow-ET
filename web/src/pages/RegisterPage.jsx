@@ -1,30 +1,39 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import FaydaQrInput from '../components/auth/FaydaQrInput'
+
+const ROLES = [
+  { id: 'SELLER', label: 'Seller' },
+  { id: 'BUYER', label: 'Buyer' },
+  { id: 'MERCHANT', label: 'Merchant' },
+]
 
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    username: '',
     phoneNumber: '',
-    password: '',
     role: 'SELLER',
-    email: '',
+    rawPayload: '',
   })
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  function handleChange(e) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-  }
-
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
+    if (!form.rawPayload.trim()) {
+      setError('Scan or paste your Fayda QR first.')
+      return
+    }
     setBusy(true)
     try {
-      await register(form)
+      await register({
+        phoneNumber: form.phoneNumber,
+        role: form.role,
+        rawPayload: form.rawPayload.trim(),
+      })
       navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err.message || 'Registration failed. Try again.')
@@ -41,22 +50,16 @@ export default function RegisterPage() {
             <span className="text-white font-bold text-sm">ET</span>
           </div>
           <h1 className="text-xl font-bold">Create account</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">Join Escrow ET today</p>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
+            Scan the back of your Fayda ID. Name, gender, and FAN come from the card.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-[var(--text)] mb-1.5">Username</label>
-            <input
-              name="username"
-              type="text"
-              required
-              value={form.username}
-              onChange={handleChange}
-              placeholder="your_username"
-              className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-h)] focus:outline-none focus:border-[var(--brand)]"
-            />
-          </div>
+          <FaydaQrInput
+            value={form.rawPayload}
+            onChange={(rawPayload) => setForm((prev) => ({ ...prev, rawPayload }))}
+          />
 
           <div>
             <label className="block text-sm text-[var(--text)] mb-1.5">Phone number</label>
@@ -65,42 +68,27 @@ export default function RegisterPage() {
               type="tel"
               required
               value={form.phoneNumber}
-              onChange={handleChange}
-              placeholder="+2519..."
-              className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-h)] focus:outline-none focus:border-[var(--brand)]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-[var(--text)] mb-1.5">Password</label>
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={8}
-              autoComplete="new-password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Min. 8 characters"
+              onChange={(e) => setForm((prev) => ({ ...prev, phoneNumber: e.target.value }))}
+              placeholder="09…"
               className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-h)] focus:outline-none focus:border-[var(--brand)]"
             />
           </div>
 
           <div>
             <label className="block text-sm text-[var(--text)] mb-1.5">I am a…</label>
-            <div className="grid grid-cols-2 gap-2">
-              {['SELLER', 'BUYER'].map((r) => (
+            <div className="grid grid-cols-3 gap-2">
+              {ROLES.map((r) => (
                 <button
-                  key={r}
+                  key={r.id}
                   type="button"
-                  onClick={() => setForm((prev) => ({ ...prev, role: r }))}
+                  onClick={() => setForm((prev) => ({ ...prev, role: r.id }))}
                   className={`py-3 rounded-xl border text-sm font-semibold transition-colors ${
-                    form.role === r
+                    form.role === r.id
                       ? 'bg-[var(--brand)] border-[var(--brand)] text-white'
                       : 'bg-[var(--input-bg)] border-[var(--border)] text-[var(--text)]'
                   }`}
                 >
-                  {r === 'SELLER' ? 'Seller' : 'Buyer'}
+                  {r.label}
                 </button>
               ))}
             </div>

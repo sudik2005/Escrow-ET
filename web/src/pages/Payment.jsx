@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import * as api from '../lib/api'
 
 const ESCROW_FEE_RATE = 0.02
@@ -8,6 +9,7 @@ const ESCROW_FEE_RATE = 0.02
 function Payment() {
   const navigate = useNavigate()
   const { contractId } = useParams()
+  const { token, loading: authLoading } = useAuth()
 
   const [contract, setContract] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -17,21 +19,26 @@ function Payment() {
   const [sandboxBusy, setSandboxBusy] = useState(false)
 
   useEffect(() => {
+    if (authLoading) return
+    if (!token) {
+      navigate('/login', { replace: true, state: { from: { pathname: `/payment/${contractId || ''}` } } })
+      return
+    }
     if (!contractId) {
       setLoading(false)
       return
     }
-    api.getContract(null, contractId)
+    api.getContract(token, contractId)
       .then((data) => setContract(data))
       .catch((err) => setFetchError(err.message || 'Contract not found.'))
       .finally(() => setLoading(false))
-  }, [contractId])
+  }, [authLoading, token, contractId, navigate])
 
   async function handlePayNow() {
     setPayError(null)
     setRedirecting(true)
     try {
-      const data = await api.pay(null, contractId)
+      const data = await api.pay(token, contractId)
       const chapaUrl = data.checkout_url || data.chapa_url || data.url
       if (chapaUrl) {
         window.location.href = chapaUrl
@@ -48,7 +55,7 @@ function Payment() {
     setPayError(null)
     setSandboxBusy(true)
     try {
-      await api.sandboxFund(null, contractId)
+      await api.sandboxFund(token, contractId)
       navigate(`/payment-success?id=${contractId}`)
     } catch (err) {
       setPayError(err.message || 'Sandbox fund failed.')

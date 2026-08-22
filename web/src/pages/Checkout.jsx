@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import * as api from '../lib/api'
 
 const ESCROW_FEE_RATE = 0.02  // 2 % fee (mirrors Flutter app)
@@ -8,22 +9,27 @@ const ESCROW_FEE_RATE = 0.02  // 2 % fee (mirrors Flutter app)
 function Checkout() {
   const navigate = useNavigate()
   const { contractId } = useParams()
+  const { token, loading: authLoading } = useAuth()
 
   const [contract, setContract] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (authLoading) return
+    if (!token) {
+      navigate('/login', { replace: true, state: { from: { pathname: `/checkout/${contractId || ''}` } } })
+      return
+    }
     if (!contractId) {
       setLoading(false)
       return
     }
-    // Checkout is public — no auth token required
-    api.getContract(null, contractId)
+    api.getContract(token, contractId)
       .then((data) => setContract(data))
       .catch((err) => setError(err.message || 'Contract not found.'))
       .finally(() => setLoading(false))
-  }, [contractId])
+  }, [authLoading, token, contractId, navigate])
 
   const whyEscrowSteps = [
     'Pay safely and securely',
