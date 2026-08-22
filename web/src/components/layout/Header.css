@@ -1,0 +1,787 @@
+/* =========================================================
+   Escrow ET — Header
+   Location: web/src/components/layout/Header.css
+
+   Brand:
+   Primary Red: #C00000
+   Foundation: Black / White
+========================================================= */
+
+
+/* =========================================================
+   HEADER VARIABLES
+========================================================= */
+
+:root {
+  --header-height: 72px;
+
+  /* Brand */
+  --header-brand-red: #c00000;
+  --header-brand-red-hover: #a80000;
+  --header-brand-red-soft: rgba(192, 0, 0, 0.08);
+  --header-brand-red-border: rgba(192, 0, 0, 0.28);
+
+  /* Header-specific layout */
+  --header-radius-sm: 5px;
+  --header-radius-md: 7px;
+  --header-radius-lg: 9px;
+
+  /* Typography */
+  --header-font-medium: 500;
+  --header-font-semibold: 600;
+  --header-font-bold: 700;
+}
+
+
+/* =========================================================
+   DARK THEME
+========================================================= */
+
+:root[data-theme='dark'] {
+  --header-brand-red: #ff4d4d;
+  --header-brand-red-hover: #ff6666;
+  --header-brand-red-soft: rgba(255, 77, 77, 0.12);
+  --header-brand-red-border: rgba(255, 77, 77, 0.32);
+}
+
+
+/* =========================================================
+   HEADER CONTAINER
+========================================================= */
+
+.header {
+  position: sticky;
+  top: 0;
+
+  z-index: 30;
+
+  width: 100%;
+  height: var(--header-height);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+
+  padding: 0 28px;
+
+  /*
+   * Use the global design tokens.
+   * These automatically change when
+   * ThemeContext changes data-theme.
+   */
+  background: var(--surface);
+
+  border-bottom: 1px solid var(--border);
+
+  flex-shrink: 0;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+/* =========================================================
+   LEFT SIDE
+========================================================= */
+
+.header__left {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+}
+
+
+/* =========================================================
+   MOBILE MENU BUTTON
+========================================================= */
+
+.header__menu-toggle {
+  width: 38px;
+  height: 38px;
+
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid var(--border);
+
+  border-radius: var(--header-radius-md);
+
+  background: transparent;
+
+  color: var(--text);
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.header__menu-toggle:hover {
+  background: var(--surface-hover);
+
+  border-color: var(--brand);
+
+  color: var(--brand);
+
+  transform: translateY(-1px);
+}
+
+.header__menu-toggle:active {
+  transform: translateY(0);
+}
+
+.header__menu-toggle:focus-visible {
+  outline: 2px solid var(--brand);
+
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   MENU ICON
+========================================================= */
+
+.header__menu-icon {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 21px;
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   TITLE GROUP
+========================================================= */
+
+.header__title-group {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  line-height: 1.2;
+}
+
+
+/* =========================================================
+   EYEBROW
+========================================================= */
+
+.header__eyebrow {
+  margin-bottom: 3px;
+
+  color: var(--text);
+
+  font-size: 10px;
+
+  font-weight: var(--header-font-semibold);
+
+  line-height: 1;
+
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   PAGE TITLE
+========================================================= */
+
+.header__title {
+  margin: 0;
+  padding: 0;
+
+  color: var(--text-h);
+
+  font-size: 20px;
+
+  font-weight: var(--header-font-semibold);
+
+  line-height: 1.2;
+
+  letter-spacing: -0.3px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   RIGHT SIDE
+========================================================= */
+
+.header__right {
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+
+/* =========================================================
+   GENERIC HEADER ACTION
+========================================================= */
+
+.header__action {
+  position: relative;
+
+  width: 38px;
+  height: 38px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+
+  border-radius: var(--header-radius-md);
+
+  background: transparent;
+
+  color: var(--text);
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.header__action:hover {
+  background: var(--surface-hover);
+
+  border-color: var(--border);
+
+  color: var(--brand);
+
+  transform: translateY(-1px);
+}
+
+.header__action:active {
+  transform: translateY(0);
+}
+
+.header__action:focus-visible {
+  outline: 2px solid var(--brand);
+
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   THEME TOGGLE
+========================================================= */
+
+.header__theme-toggle {
+  width: 38px;
+  height: 38px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+
+  border-radius: var(--header-radius-md);
+
+  background: transparent;
+
+  color: var(--text);
+
+  font-size: 18px;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.header__theme-toggle:hover {
+  background: var(--header-brand-red-soft);
+
+  border-color: var(--header-brand-red-border);
+
+  color: var(--header-brand-red);
+
+  transform: translateY(-1px);
+}
+
+.header__theme-toggle:active {
+  transform: translateY(0);
+}
+
+.header__theme-toggle:focus-visible {
+  outline: 2px solid var(--brand);
+
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   NOTIFICATION BUTTON
+========================================================= */
+
+.header__notification {
+  position: relative;
+
+  width: 38px;
+  height: 38px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+
+  border-radius: var(--header-radius-md);
+
+  background: transparent;
+
+  color: var(--text);
+
+  font-size: 17px;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.header__notification:hover {
+  background: var(--surface-hover);
+
+  border-color: var(--border);
+
+  color: var(--brand);
+
+  transform: translateY(-1px);
+}
+
+.header__notification:active {
+  transform: translateY(0);
+}
+
+.header__notification:focus-visible {
+  outline: 2px solid var(--brand);
+
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   NOTIFICATION BADGE
+========================================================= */
+
+.header__notification-badge {
+  position: absolute;
+
+  top: 2px;
+  right: 2px;
+
+  min-width: 15px;
+  height: 15px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 3px;
+
+  box-sizing: border-box;
+
+  border: 2px solid var(--surface);
+
+  border-radius: 999px;
+
+  background: var(--brand);
+
+  color: #ffffff;
+
+  font-size: 8px;
+
+  font-weight: var(--header-font-bold);
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   PROFILE BUTTON
+========================================================= */
+
+.header__profile {
+  width: 38px;
+  height: 38px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+
+  border-radius: var(--header-radius-md);
+
+  background: transparent;
+
+  color: var(--text);
+
+  font-size: 17px;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.header__profile:hover {
+  background: var(--surface-hover);
+
+  border-color: var(--border);
+
+  color: var(--brand);
+
+  transform: translateY(-1px);
+}
+
+.header__profile:active {
+  transform: translateY(0);
+}
+
+.header__profile:focus-visible {
+  outline: 2px solid var(--brand);
+
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   PROFILE AVATAR
+========================================================= */
+
+.header__avatar {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--brand);
+
+  color: #ffffff;
+
+  font-size: 11px;
+
+  font-weight: var(--header-font-bold);
+
+  letter-spacing: 0.2px;
+}
+
+
+/* =========================================================
+   PROFILE INFORMATION
+========================================================= */
+
+.header__profile-info {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  line-height: 1.2;
+}
+
+.header__profile-name {
+  color: var(--text-h);
+
+  font-size: 12px;
+
+  font-weight: var(--header-font-semibold);
+
+  white-space: nowrap;
+}
+
+.header__profile-role {
+  margin-top: 2px;
+
+  color: var(--text);
+
+  font-size: 9px;
+
+  font-weight: var(--header-font-medium);
+
+  letter-spacing: 0.3px;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   PROFILE CHEVRON
+========================================================= */
+
+.header__profile-chevron {
+  color: var(--text);
+
+  font-size: 11px;
+
+  transition:
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.header__profile:hover .header__profile-chevron {
+  color: var(--brand);
+
+  transform: translateY(1px);
+}
+
+
+/* =========================================================
+   VERTICAL DIVIDER
+========================================================= */
+
+.header__divider {
+  width: 1px;
+  height: 24px;
+
+  margin: 0 4px;
+
+  background: var(--border);
+}
+
+
+/* =========================================================
+   HEADER RED ACCENT
+========================================================= */
+
+.header__accent {
+  width: 3px;
+  height: 24px;
+
+  flex-shrink: 0;
+
+  border-radius: 999px;
+
+  background: var(--brand);
+
+  box-shadow:
+    0 0 8px rgba(192, 0, 0, 0.2);
+}
+
+:root[data-theme='dark'] .header__accent {
+  box-shadow:
+    0 0 8px rgba(255, 77, 77, 0.25);
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1024px) {
+  .header {
+    padding: 0 20px;
+  }
+
+  .header__menu-toggle {
+    display: inline-flex;
+  }
+
+  .header__title {
+    font-size: 19px;
+  }
+
+  .header__right {
+    gap: 5px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+  .header {
+    height: 68px;
+
+    padding: 0 16px;
+  }
+
+  .header__left {
+    gap: 11px;
+  }
+
+  .header__menu-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header__title {
+    max-width: 190px;
+
+    font-size: 18px;
+  }
+
+  .header__eyebrow {
+    font-size: 9px;
+
+    letter-spacing: 0.8px;
+  }
+
+  .header__action,
+  .header__theme-toggle,
+  .header__notification,
+  .header__profile {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header__profile-info {
+    display: none;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .header {
+    height: 64px;
+
+    padding: 0 12px;
+  }
+
+  .header__left {
+    gap: 9px;
+  }
+
+  .header__title {
+    max-width: 140px;
+
+    font-size: 17px;
+  }
+
+  .header__eyebrow {
+    font-size: 8px;
+
+    letter-spacing: 0.7px;
+  }
+
+  .header__right {
+    gap: 2px;
+  }
+
+  .header__menu-toggle,
+  .header__action,
+  .header__theme-toggle,
+  .header__notification,
+  .header__profile {
+    width: 34px;
+    height: 34px;
+  }
+
+  .header__theme-toggle,
+  .header__notification,
+  .header__profile {
+    font-size: 15px;
+  }
+
+  .header__avatar {
+    width: 28px;
+    height: 28px;
+
+    font-size: 10px;
+  }
+
+  .header__divider {
+    height: 20px;
+
+    margin: 0 2px;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .header__menu-toggle,
+  .header__action,
+  .header__theme-toggle,
+  .header__notification,
+  .header__profile,
+  .header__profile-chevron {
+    transition: none;
+  }
+}
