@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import * as api from '../lib/api'
@@ -41,6 +41,7 @@ function fmtDate(iso) {
 }
 
 function ContractDetail({ contract }) {
+  const navigate = useNavigate()
   const timeline = statusToTimeline(contract.status)
 
   return (
@@ -97,6 +98,14 @@ function ContractDetail({ contract }) {
         <span className="text-[var(--text-muted)]">Amount</span>
         <span className="font-bold">{Number(contract.amount).toFixed(2)} ETB</span>
       </div>
+
+      <button
+        type="button"
+        onClick={() => navigate('/qr-code')}
+        className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white font-semibold py-3.5 rounded-xl transition-colors"
+      >
+        View QR Code
+      </button>
     </div>
   )
 }
