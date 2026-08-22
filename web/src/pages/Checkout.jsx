@@ -4,8 +4,6 @@ import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import * as api from '../lib/api'
 
-const ESCROW_FEE_RATE = 0.02  // 2 % fee (mirrors Flutter app)
-
 function Checkout() {
   const navigate = useNavigate()
   const { contractId } = useParams()
@@ -91,8 +89,7 @@ function Checkout() {
 
         {contract && (() => {
           const itemAmount = Number(contract.amount)
-          const escrowFee = parseFloat((itemAmount * ESCROW_FEE_RATE).toFixed(2))
-          const total = itemAmount + escrowFee
+          const total = itemAmount
           return (
             <>
               <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Order Summary</h2>
@@ -103,19 +100,15 @@ function Checkout() {
                 <div>
                   <p className="font-semibold">{contract.item_name}</p>
                   <p className="text-sm text-[var(--text-muted)]">
-                    by {contract.seller_username || 'Seller'}
+                    by {contract.seller_username || contract.seller_phone || 'Seller'}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2 mb-4 pb-4 border-b border-[var(--border)] text-sm">
                 <div className="flex justify-between text-[var(--text)]">
-                  <span>Item Amount</span>
+                  <span>Amount held in escrow</span>
                   <span>{itemAmount.toFixed(2)} ETB</span>
-                </div>
-                <div className="flex justify-between text-[var(--text)]">
-                  <span>Escrow Protection Fee (2%)</span>
-                  <span>{escrowFee.toFixed(2)} ETB</span>
                 </div>
               </div>
 

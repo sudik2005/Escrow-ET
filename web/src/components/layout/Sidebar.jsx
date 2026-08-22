@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 import logoImage from '../../assets/logo.png';
 
@@ -68,6 +69,10 @@ const settingsItems = [
 
 const Sidebar = ({ isOpen = true, onClose }) => {
   const sidebarRef = useRef(null);
+  const { user } = useAuth();
+  const visibleNav = navigationItems.filter(
+    (item) => item.to !== '/admin' || user?.role === 'ADMIN',
+  );
 
   /* ---------------------------------------------------------
      Close when clicking outside
@@ -233,7 +238,7 @@ const Sidebar = ({ isOpen = true, onClose }) => {
             className="sidebar__nav"
             aria-label="Main navigation"
           >
-            {navigationItems.map(renderNavigationItem)}
+            {visibleNav.map(renderNavigationItem)}
           </nav>
         </div>
 

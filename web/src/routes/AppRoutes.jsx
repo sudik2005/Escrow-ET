@@ -2,7 +2,7 @@ import { Navigate, Routes, Route } from 'react-router-dom';
 
 import AppLayout from '../components/layout/AppLayout';
 
-import ProtectedRoute from '../components/auth/ProtectedRoute';
+import ProtectedRoute, { AdminRoute } from '../components/auth/ProtectedRoute';
 
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
@@ -136,32 +136,34 @@ function AppRoutes() {
           }
         />
 
-        <Route
-          path="/admin"
-          element={
-            <DashboardLayout>
-              <AdminDashboard />
-            </DashboardLayout>
-          }
-        />
+        <Route element={<AdminRoute />}>
+          <Route
+            path="/admin"
+            element={
+              <DashboardLayout>
+                <AdminDashboard />
+              </DashboardLayout>
+            }
+          />
 
-        <Route
-          path="/admin/disputes"
-          element={
-            <DashboardLayout>
-              <AdminDisputes />
-            </DashboardLayout>
-          }
-        />
+          <Route
+            path="/admin/disputes"
+            element={
+              <DashboardLayout>
+                <AdminDisputes />
+              </DashboardLayout>
+            }
+          />
 
-        <Route
-          path="/admin/disputes/:disputeId"
-          element={
-            <DashboardLayout>
-              <AdminDisputeDtails />
-            </DashboardLayout>
-          }
-        />
+          <Route
+            path="/admin/disputes/:disputeId"
+            element={
+              <DashboardLayout>
+                <AdminDisputeDtails />
+              </DashboardLayout>
+            }
+          />
+        </Route>
 
         <Route
           path="/settings/developer"

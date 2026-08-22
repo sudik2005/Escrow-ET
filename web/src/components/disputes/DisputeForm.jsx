@@ -39,8 +39,13 @@ function DisputeForm({disputeId}){
         }
         setSubmitting(true)
         try {
-            await api.openDispute(token, selectedId, reason)
-            navigate('/disputes/messages')
+            const note = evidence ? `${reason}\n\nEvidence: ${evidence.name}` : reason
+            const contract = await api.openDispute(token, selectedId, note)
+            navigate(
+              contract.dispute_id
+                ? `/disputes/messages?id=${contract.dispute_id}`
+                : '/disputes/messages',
+            )
         } catch (err) {
             setSubmitError(err.message || 'Could not open the dispute.')
         } finally {
@@ -52,20 +57,11 @@ function DisputeForm({disputeId}){
                     setUploadError('Please select a file first.')
                     return
                 }
-                setUploading(true);
-        setUploadProgress(0);
-        setUploadError('');
-        setUploadSuccess(false)
-        let progress = 0
-        const interval = setInterval(() => {
-            progress +=20
-            setUploadProgress(progress)
-            if(progress>=100){
-                clearInterval(interval)
                 setUploading(false)
+                setUploadProgress(100)
+                setUploadError('')
                 setUploadSuccess(true)
-            }
-        }, 500)
+                // File name is attached to the dispute reason on submit.
         // const formData = new FormData()
         // formData.append('evidence',evidence)
         // const xhr = new XMLHttpRequest()

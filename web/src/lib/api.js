@@ -59,6 +59,14 @@ export function me(token) {
   return request('/auth/me/', { token })
 }
 
+export function updateProfile(token, payload) {
+  return request('/auth/me/', { method: 'PATCH', token, body: payload })
+}
+
+export function logout(token) {
+  return request('/auth/logout/', { method: 'POST', token })
+}
+
 // ── Escrow contracts ──────────────────────────────────────────────────────────
 
 export function mineContracts(token) {
@@ -115,3 +123,56 @@ export function openDispute(token, id, reason) {
     body: { reason },
   })
 }
+
+// ── Merchant settings ─────────────────────────────────────────────────────────
+
+export function getMerchantSettings(token) {
+  return request('/merchant/settings/', { token })
+}
+
+export function updateMerchantSettings(token, payload) {
+  return request('/merchant/settings/', { method: 'PATCH', token, body: payload })
+}
+
+export function rotateMerchantKeys(token) {
+  return request('/merchant/settings/rotate/', { method: 'POST', token })
+}
+
+// ── Disputes ──────────────────────────────────────────────────────────────────
+
+export function listDisputes(token) {
+  return request('/disputes/', { token })
+}
+
+export function getDispute(token, id) {
+  return request(`/disputes/${id}/`, { token })
+}
+
+export function sendDisputeMessage(token, id, { message, attachmentUrl } = {}) {
+  return request(`/disputes/${id}/messages/`, {
+    method: 'POST',
+    token,
+    body: {
+      message,
+      ...(attachmentUrl ? { attachment_url: attachmentUrl } : {}),
+    },
+  })
+}
+
+export function reviewDispute(token, id) {
+  return request(`/disputes/${id}/review/`, { method: 'POST', token })
+}
+
+export function resolveDispute(token, id, resolution) {
+  return request(`/disputes/${id}/resolve/`, {
+    method: 'POST',
+    token,
+    body: { resolution },
+  })
+}
+
+export function adminOverview(token) {
+  return request('/admin/overview/', { token })
+}
+
+export { ApiError, BASE_URL }

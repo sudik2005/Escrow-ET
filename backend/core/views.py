@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 
 from . import chapa
 from .fayda import FaydaError, verify_and_decode
+from .merchant import can_create_escrow
 from .models import (
     Dispute,
     EscrowContract,
@@ -115,9 +116,9 @@ class MeView(APIView):
 class EscrowCreateView(APIView):
     """
     POST /api/escrow/create/
-    Only sellers create escrow contracts. Buyer is looked up by phone
-    number. Attempts to start a Chapa checkout immediately so the
-    response can include payment_link right away when possible - if
+    Sellers and merchants create escrow contracts. Buyer is looked up
+    by phone number. Attempts to start a Chapa checkout immediately so
+    the response can include payment_link right away when possible - if
     Chapa is unreachable or not configured, the contract is still
     created with payment_link null, and /pay/ can be used to retry.
     """
@@ -125,9 +126,9 @@ class EscrowCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if request.user.role != request.user.Role.SELLER:
+        if not can_create_escrow(request.user):
             return Response(
-                {"error": "Only sellers can create escrow contracts"},
+                {"error": "Only sellers and merchants can create escrow contracts"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -151,6 +152,7 @@ def _try_initiate_chapa_payment(request, contract):
     """
     tx_ref = f"escrow-{contract.id}-{uuid.uuid4().hex[:8]}"
     callback_url = request.build_absolute_uri(reverse("chapa-webhook"))
+    return_url = f"{settings.FRONTEND_URL}/payment-success?id={contract.id}"
 
     try:
         checkout_url = chapa.initialize_transaction(
@@ -159,7 +161,7 @@ def _try_initiate_chapa_payment(request, contract):
             currency=contract.currency,
             tx_ref=tx_ref,
             callback_url=callback_url,
-            return_url=callback_url,
+            return_url=return_url,
             first_name=contract.buyer.first_name or contract.buyer.username or "Buyer",
             last_name=contract.buyer.last_name or contract.buyer.phone_number or "User",
         )
@@ -284,7 +286,7 @@ class MyEscrowContractsView(APIView):
         user = request.user
         contracts = EscrowContract.objects.filter(
             models.Q(buyer=user) | models.Q(seller=user)
-        )
+        ).select_related("buyer", "seller", "dispute")
         return Response(
             EscrowContractSerializer(
                 contracts.order_by("-created_at"), many=True
@@ -301,7 +303,10 @@ class EscrowDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        contract = get_object_or_404(EscrowContract, pk=pk)
+        contract = get_object_or_404(
+            EscrowContract.objects.select_related("buyer", "seller", "dispute"),
+            pk=pk,
+        )
         if request.user not in (contract.buyer, contract.seller):
             return Response(
                 {"error": "You do not have access to this contract"},
@@ -429,6 +434,7 @@ class OpenDisputeView(APIView):
         )
         contract.status = EscrowContract.Status.DISPUTED
         contract.save(update_fields=["status", "updated_at"])
+        contract.refresh_from_db()
 
         return Response(EscrowContractSerializer(contract).data, status=status.HTTP_201_CREATED)
 

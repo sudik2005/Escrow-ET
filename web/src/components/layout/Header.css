@@ -500,6 +500,8 @@
   padding: 12px 15px;
 
   border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
 
   transition:
     background-color 0.15s ease;

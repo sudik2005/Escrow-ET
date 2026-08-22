@@ -3,31 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import * as api from '../lib/api'
-
-function statusToTimeline(status) {
-  const s = (status || '').toLowerCase()
-  const steps = [
-    { label: 'Payment Initiated', state: 'upcoming' },
-    { label: 'Funds Locked', state: 'upcoming' },
-    { label: 'Delivery in Progress', state: 'upcoming' },
-    { label: 'Funds Released', state: 'upcoming' },
-  ]
-
-  if (s.includes('created')) steps[0].state = 'current'
-  if (s.includes('funded') || s.includes('locked')) {
-    steps[0].state = 'done'
-    steps[1].state = 'current'
-  }
-  if (s.includes('shipped')) {
-    steps[0].state = 'done'
-    steps[1].state = 'done'
-    steps[2].state = 'current'
-  }
-  if (s.includes('released') || s.includes('completed')) {
-    steps.forEach((step) => (step.state = 'done'))
-  }
-  return steps
-}
+import { statusLabel, timelineSteps } from '../lib/status'
 
 function fmtDate(iso) {
   if (!iso) return 'Pending'
@@ -40,21 +16,40 @@ function fmtDate(iso) {
   })
 }
 
-function ContractDetail({ contract }) {
+function ContractDetail({ contract, user, onUpdated }) {
   const navigate = useNavigate()
-  const timeline = statusToTimeline(contract.status)
+  const { token } = useAuth()
+  const timeline = timelineSteps(contract.status)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  const isSeller = user && String(user.id) === String(contract.seller_id)
+  const canShip = isSeller && contract.status === 'FUNDED'
+  const canDispute = ['FUNDED', 'IN_TRANSIT', 'DELIVERED_UNVERIFIED'].includes(contract.status)
+
+  async function handleShip() {
+    setBusy(true)
+    setError(null)
+    try {
+      const next = await api.markShipped(token, contract.id)
+      onUpdated(next)
+    } catch (err) {
+      setError(err.message || 'Could not mark as shipped.')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <div>
       <div className="flex justify-between items-start mb-1">
         <p className="font-semibold">Transaction #ET-{contract.id}</p>
         <span className="text-xs bg-[var(--warning-soft)] text-[var(--warning)] font-medium px-2 py-1 rounded-full">
-          {contract.status || 'Unknown'}
+          {statusLabel(contract.status)}
         </span>
       </div>
       <p className="text-sm text-[var(--text-muted)] mb-1">{contract.item_name}</p>
       <p className="text-sm text-[var(--text-muted)] mb-6">
-        Seller: {contract.seller_username || '—'}
+        Seller: {contract.seller_username || contract.seller_phone || '—'}
       </p>
 
       <div className="mb-6">
@@ -99,26 +94,50 @@ function ContractDetail({ contract }) {
         <span className="font-bold">{Number(contract.amount).toFixed(2)} ETB</span>
       </div>
 
+      {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
+
+      {canShip && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={handleShip}
+          className="w-full mb-2 bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl transition-colors"
+        >
+          {busy ? 'Updating…' : 'Mark as shipped'}
+        </button>
+      )}
+
       <button
         type="button"
         onClick={() => navigate(`/qr-code?id=${contract.id}`)}
         className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white font-semibold py-3.5 rounded-xl transition-colors"
       >
-        View QR Code
+        View QR code
       </button>
-      <button
-        type="button"
-        onClick={() => navigate(`/disputes?id=${contract.id}`)}
-        className="w-full mt-2 border border-[var(--border)] text-[var(--text-h)] font-semibold py-3.5 rounded-xl transition-colors"
-      >
-        Open dispute
-      </button>
+      {canDispute && (
+        <button
+          type="button"
+          onClick={() => navigate(`/disputes?id=${contract.id}`)}
+          className="w-full mt-2 border border-[var(--border)] text-[var(--text-h)] font-semibold py-3.5 rounded-xl transition-colors"
+        >
+          Open dispute
+        </button>
+      )}
+      {contract.dispute_id && (
+        <button
+          type="button"
+          onClick={() => navigate(`/disputes/messages?id=${contract.dispute_id}`)}
+          className="w-full mt-2 border border-[var(--border)] text-[var(--text-h)] font-semibold py-3.5 rounded-xl transition-colors"
+        >
+          View dispute messages
+        </button>
+      )}
     </div>
   )
 }
 
 function TransactionTracking() {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const [searchParams] = useSearchParams()
   const focusId = searchParams.get('id')
 
@@ -147,6 +166,11 @@ function TransactionTracking() {
       .finally(() => setLoading(false))
   }, [token, focusId])
 
+  function handleUpdated(next) {
+    setContracts((prev) => prev.map((c) => (c.id === next.id ? next : c)))
+    setSelected(next)
+  }
+
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-h)] p-4">
       <div className="max-w-4xl mx-auto">
@@ -171,7 +195,6 @@ function TransactionTracking() {
 
         {!loading && contracts.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Sidebar list */}
             <div className="md:col-span-1 space-y-2">
               {contracts.map((c) => (
                 <button
@@ -186,15 +209,14 @@ function TransactionTracking() {
                 >
                   <p className="font-semibold text-sm truncate">{c.item_name}</p>
                   <p className="text-xs text-[var(--text-muted)]">{Number(c.amount).toFixed(2)} ETB</p>
-                  <p className="text-xs text-[var(--text-subtle)] mt-1">{c.status}</p>
+                  <p className="text-xs text-[var(--text-subtle)] mt-1">{statusLabel(c.status)}</p>
                 </button>
               ))}
             </div>
 
-            {/* Detail pane */}
             <div className="md:col-span-2 bg-[var(--surface)] rounded-2xl shadow-[var(--shadow-card)] p-8">
               {selected ? (
-                <ContractDetail contract={selected} />
+                <ContractDetail contract={selected} user={user} onUpdated={handleUpdated} />
               ) : (
                 <p className="text-center text-[var(--text-muted)]">Select a transaction.</p>
               )}

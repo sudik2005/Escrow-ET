@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .fayda import FaydaError, FaydaIdentity, verify_and_decode
-from .models import User, EscrowContract, PaymentTransaction
+from .models import User, EscrowContract, Dispute, DisputeMessage, MerchantSettings, PaymentTransaction
 from .phone import normalize_et_phone
 
 
@@ -137,16 +137,25 @@ class EscrowContractSerializer(serializers.ModelSerializer):
     is what the client encodes into a QR code for delivery confirmation.
     """
 
+    buyer_id = serializers.UUIDField(source="buyer.id", read_only=True)
+    seller_id = serializers.UUIDField(source="seller.id", read_only=True)
     buyer_phone = serializers.CharField(source="buyer.phone_number", read_only=True)
     seller_phone = serializers.CharField(source="seller.phone_number", read_only=True)
+    buyer_username = serializers.CharField(source="buyer.username", read_only=True)
+    seller_username = serializers.CharField(source="seller.username", read_only=True)
     pin_is_set = serializers.SerializerMethodField()
+    dispute_id = serializers.SerializerMethodField()
 
     class Meta:
         model = EscrowContract
         fields = [
             "id",
+            "buyer_id",
+            "seller_id",
             "buyer_phone",
             "seller_phone",
+            "buyer_username",
+            "seller_username",
             "item_name",
             "amount",
             "currency",
@@ -154,6 +163,7 @@ class EscrowContractSerializer(serializers.ModelSerializer):
             "delivery_qr_token",
             "pin_is_set",
             "payment_link",
+            "dispute_id",
             "created_at",
             "updated_at",
         ]
@@ -161,6 +171,11 @@ class EscrowContractSerializer(serializers.ModelSerializer):
 
     def get_pin_is_set(self, obj):
         return bool(obj.verification_pin)
+
+    def get_dispute_id(self, obj):
+        if hasattr(obj, "dispute"):
+            return str(obj.dispute.id)
+        return None
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
@@ -215,3 +230,69 @@ class DisputeCreateSerializer(serializers.Serializer):
     """POST /api/escrow/<id>/dispute/"""
 
     reason = serializers.CharField(min_length=5)
+
+
+class DisputeMessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source="sender.username", read_only=True)
+    sender_role = serializers.CharField(source="sender.role", read_only=True)
+
+    class Meta:
+        model = DisputeMessage
+        fields = [
+            "id",
+            "sender",
+            "sender_username",
+            "sender_role",
+            "message",
+            "attachment_url",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class DisputeSerializer(serializers.ModelSerializer):
+    escrow_id = serializers.UUIDField(source="escrow.id", read_only=True)
+    item_name = serializers.CharField(source="escrow.item_name", read_only=True)
+    amount = serializers.DecimalField(
+        source="escrow.amount", max_digits=10, decimal_places=2, read_only=True
+    )
+    currency = serializers.CharField(source="escrow.currency", read_only=True)
+    buyer_phone = serializers.CharField(source="escrow.buyer.phone_number", read_only=True)
+    seller_phone = serializers.CharField(source="escrow.seller.phone_number", read_only=True)
+    buyer_username = serializers.CharField(source="escrow.buyer.username", read_only=True)
+    seller_username = serializers.CharField(source="escrow.seller.username", read_only=True)
+    opened_by_username = serializers.CharField(source="opened_by.username", read_only=True)
+    messages = DisputeMessageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Dispute
+        fields = [
+            "id",
+            "escrow_id",
+            "item_name",
+            "amount",
+            "currency",
+            "buyer_phone",
+            "seller_phone",
+            "buyer_username",
+            "seller_username",
+            "opened_by",
+            "opened_by_username",
+            "reason",
+            "status",
+            "created_at",
+            "messages",
+        ]
+        read_only_fields = fields
+
+
+class MerchantSettingsSerializer(serializers.ModelSerializer):
+    webhook_url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = MerchantSettings
+        fields = ["public_key", "secret_key", "webhook_url"]
+        read_only_fields = ["public_key", "secret_key"]
+
+    def validate_webhook_url(self, value):
+        return value or None
