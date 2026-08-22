@@ -22,6 +22,7 @@ import DisputeMessages from '../components/disputes/DisputeMessages';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import AdminDisputes from '../components/admin/AdminDisputes';
 import AdminDisputeDtails from '../components/admin/AdminDisputeDetails';
+import Profile from '../pages/Profile';
 
 
 function PlaceholderPage({ title, description }) {
@@ -176,6 +177,15 @@ function AppRoutes() {
           element={
             <DashboardLayout>
               <DeveloperDocs />
+            </DashboardLayout>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <DashboardLayout>
+              <Profile />
             </DashboardLayout>
           }
         />

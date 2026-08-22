@@ -470,11 +470,104 @@ async function createDeal() {
   </div>
 </section>
 
-       
+        <section className="landing-info">
+          <div className="landing-section-heading">
+            <p className="landing-section-heading__eyebrow">
+              Company
+            </p>
+            <h2 className="landing-section-title">
+              About Escrow ET
+            </h2>
+            <p className="landing-section-description">
+              Built in Ethiopia for buyers, sellers, and
+              merchants who need funds held until delivery
+              is confirmed.
+            </p>
+          </div>
 
-       
+          <div className="landing-info__grid">
+            <article id="about" className="landing-info__card">
+              <h3>About Us</h3>
+              <p>
+                Escrow ET holds payment until the buyer
+                confirms delivery. Sellers get paid only
+                after the goods or service arrive. The
+                website mirrors the same Fayda-backed
+                flows as the mobile app.
+              </p>
+            </article>
 
-       
+            <article id="security" className="landing-info__card">
+              <h3>Security</h3>
+              <p>
+                Accounts are created with a Fayda QR
+                payload. Escrow balances live in an
+                immutable ledger on PostgreSQL. Payment
+                is collected through Chapa. Secrets stay
+                on the Django API, never in the browser.
+              </p>
+            </article>
+
+            <article id="privacy" className="landing-info__card">
+              <h3>Privacy</h3>
+              <p>
+                We store the phone number, role, and
+                Fayda identifiers needed to open an
+                account and settle a deal. We do not
+                sell personal data. Contact us if you
+                want your account closed.
+              </p>
+            </article>
+
+            <article id="contact" className="landing-info__card">
+              <h3>Contact</h3>
+              <p>
+                Questions about a deal, a dispute, or
+                API access can go to the GitHub repo or
+                your project teammates. This is a student
+                build, not a licensed bank.
+              </p>
+              <a href="https://github.com/sudik2005/Escrow-ET">
+                github.com/sudik2005/Escrow-ET
+              </a>
+            </article>
+
+            <article id="terms" className="landing-info__card">
+              <h3>Terms of Service</h3>
+              <p>
+                Use Escrow ET only for lawful goods and
+                services. Creating a deal means you
+                accept that funds stay locked until
+                delivery is verified or a dispute is
+                resolved. We can freeze a deal that
+                looks fraudulent.
+              </p>
+            </article>
+
+            <article id="refund" className="landing-info__card">
+              <h3>Escrow Refund Policy</h3>
+              <p>
+                If delivery is not confirmed, or a
+                dispute is decided for the buyer, the
+                locked amount is refunded to the buyer.
+                If delivery is verified, funds are
+                released to the seller. Partial refunds
+                follow the dispute outcome.
+              </p>
+            </article>
+
+            <article id="requirements" className="landing-info__card">
+              <h3>KYC Requirements</h3>
+              <p>
+                Sign up with a valid Fayda QR and an
+                Ethiopian phone number. Sellers who
+                create payment links must register as
+                SELLER. Unverified or mismatched Fayda
+                data is rejected at registration.
+              </p>
+            </article>
+          </div>
+        </section>
       </main>
 
       {/* =====================================================
@@ -588,23 +681,14 @@ async function createDeal() {
     </p>
 
     <div className="landing-footer__socials">
-      <a
-        href="#twitter"
-        aria-label="Twitter"
-      >
-        Twitter
+      <a href="#contact">
+        Contact
       </a>
-
       <a
-        href="#linkedin"
-        aria-label="LinkedIn"
-      >
-        LinkedIn
-      </a>
-
-      <a
-        href="#github"
+        href="https://github.com/sudik2005/Escrow-ET"
         aria-label="GitHub"
+        target="_blank"
+        rel="noreferrer"
       >
         GitHub
       </a>
