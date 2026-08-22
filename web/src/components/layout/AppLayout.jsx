@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './AppLayout.css';
@@ -6,6 +7,8 @@ import './AppLayout.css';
 const DESKTOP_BREAKPOINT = 1024;
 
 const AppLayout = ({ children }) => {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') {
@@ -131,17 +134,19 @@ const AppLayout = ({ children }) => {
           ${isMobile ? 'app-main--mobile' : ''}
         `}
       >
-        <div
-          className="
-            relative
-            z-50
-          "
-        >
-          <Header
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={toggleSidebar}
-          />
-        </div>
+        {!isAdminPage && (
+          <div
+            className="
+              relative
+              z-50
+            "
+          >
+            <Header
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={toggleSidebar}
+            />
+          </div>
+        )}
         <main
           className="
             app-content
@@ -150,7 +155,9 @@ const AppLayout = ({ children }) => {
           "
           onClick={handleContentClick}
         >
-          {children}
+          {React.isValidElement(children)
+            ? React.cloneElement(children, { sidebarOpen, toggleSidebar })
+            : children}
         </main>
       </div>
     </div>
