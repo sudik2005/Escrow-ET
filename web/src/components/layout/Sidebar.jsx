@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import BrandLogo from '../ui/BrandLogo';
 import './Sidebar.css';
-import logoImage from '../../assets/logo.png';
 
 /* =========================================================
    Icon
@@ -207,11 +207,7 @@ const Sidebar = ({ isOpen = true, onClose }) => {
 
         <div className="sidebar__brand">
           <div className="sidebar__brand-icon">
-            <img
-              src={logoImage}
-              alt="Escrow ET logo"
-              className="sidebar__logo"
-            />
+            <BrandLogo className="sidebar__logo" />
           </div>
 
           <div className="sidebar__brand-text">

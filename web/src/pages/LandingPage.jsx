@@ -1,7 +1,7 @@
 import { useTheme } from '../context/useTheme'
+import BrandLogo from '../components/ui/BrandLogo'
 import './LandingPage.css'
 import heroImage from '../assets/hero.png'
-import logoImage from '../assets/logo.png'
 
 function LandingPage() {
   const { theme, toggleTheme } = useTheme()
@@ -19,11 +19,7 @@ function LandingPage() {
           aria-label="Escrow ET home"
         >
          <div className="landing-header__shield">
-  <img
-    src={logoImage}
-    alt="Escrow ET"
-    className="landing-header__logo"
-  />
+  <BrandLogo className="landing-header__logo" />
 </div>
 
           <span className="landing-header__brand-name">
@@ -578,11 +574,7 @@ async function createDeal() {
     {/* Brand */}
     <div className="landing-footer__brand">
       <a href="/" className="landing-footer__logo">
-        <img
-          src={logoImage}
-          alt="Escrow ET"
-          className="landing-footer__logo-image"
-        />
+        <BrandLogo className="landing-footer__logo-image" />
         <span className="landing-footer__brand-name">
           Escrow <span>ET</span>
         </span>
