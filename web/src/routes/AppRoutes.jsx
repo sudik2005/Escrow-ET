@@ -17,6 +17,11 @@ import PaymentSuccess from '../pages/PaymentSuccess';
 import MerchantDashboard from '../pages/MerchantDashboard';
 import QRCodeView from '../pages/QRCodeView';
 import DeliveryVerified from '../pages/DeliveryVerified';
+import DisputeForm from '../components/disputes/DisputeForm';
+import DisputeMessages from '../components/disputes/DisputeMessages';
+import AdminDashboard from '../components/admin/AdminDashboard';
+import AdminDisputes from '../components/admin/AdminDisputes';
+import AdminDisputeDtails from '../components/admin/AdminDisputeDetails';
 
 
 function PlaceholderPage({ title, description }) {
@@ -115,10 +120,43 @@ function AppRoutes() {
           path="/disputes"
           element={
             <DashboardLayout>
-              <PlaceholderPage
-                title="Disputes"
-                description="Dispute management will be implemented by the dispute resolution team."
-              />
+              <DisputeForm />
+            </DashboardLayout>
+          }
+        />
+
+        <Route
+          path="/disputes/messages"
+          element={
+            <DashboardLayout>
+              <DisputeMessages />
+            </DashboardLayout>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <DashboardLayout>
+              <AdminDashboard />
+            </DashboardLayout>
+          }
+        />
+
+        <Route
+          path="/admin/disputes"
+          element={
+            <DashboardLayout>
+              <AdminDisputes />
+            </DashboardLayout>
+          }
+        />
+
+        <Route
+          path="/admin/disputes/:disputeId"
+          element={
+            <DashboardLayout>
+              <AdminDisputeDtails />
             </DashboardLayout>
           }
         />
