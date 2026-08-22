@@ -15,8 +15,11 @@ class EscrowApp extends ConsumerWidget {
     final auth = ref.watch(authControllerProvider);
     final isDark = ref.watch(themeControllerProvider);
 
+    final session = auth.session;
     return MaterialApp(
-      key: ValueKey(auth.status),
+      key: ValueKey(
+        '${auth.status}-${session?.user.id ?? ''}-${session?.user.role ?? ''}',
+      ),
       title: 'Escrow ET',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
