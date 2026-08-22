@@ -34,7 +34,7 @@ export default function RegisterPage() {
         role: form.role,
         rawPayload: form.rawPayload.trim(),
       })
-      navigate('/dashboard', { replace: true })
+      navigate(form.role === 'BUYER' ? '/transactions' : '/dashboard', { replace: true })
     } catch (err) {
       setError(err.message || 'Registration failed. Try again.')
     } finally {

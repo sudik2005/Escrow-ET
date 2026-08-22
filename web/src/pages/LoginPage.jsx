@@ -7,15 +7,16 @@ export default function LoginPage() {
   const { login, loginWithFayda } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const next = location.state?.from?.pathname || '/dashboard'
+  const from = location.state?.from?.pathname
   const [mode, setMode] = useState('password')
   const [form, setForm] = useState({ username: '', password: '' })
   const [rawPayload, setRawPayload] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  function goNext() {
-    navigate(next, { replace: true })
+  function goNext(user) {
+    const fallback = user?.role === 'BUYER' ? '/transactions' : '/dashboard'
+    navigate(from || fallback, { replace: true })
   }
 
   async function handlePassword(e) {
@@ -23,8 +24,8 @@ export default function LoginPage() {
     setError(null)
     setBusy(true)
     try {
-      await login(form.username, form.password)
-      goNext()
+      const user = await login(form.username, form.password)
+      goNext(user)
     } catch (err) {
       setError(err.message || 'Login failed. Check your credentials.')
     } finally {
@@ -41,8 +42,8 @@ export default function LoginPage() {
     }
     setBusy(true)
     try {
-      await loginWithFayda(rawPayload.trim())
-      goNext()
+      const user = await loginWithFayda(rawPayload.trim())
+      goNext(user)
     } catch (err) {
       setError(err.message || 'Fayda sign-in failed.')
     } finally {
