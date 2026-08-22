@@ -208,6 +208,7 @@ class AuthController extends Notifier<AuthState> {
       if (!_alive) {
         return;
       }
+      ref.read(shellTabProvider.notifier).state = 0;
       state = AuthState(status: AuthStatus.signedIn, session: session);
     } on ApiException catch (error) {
       if (!_alive) {

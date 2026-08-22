@@ -11,6 +11,7 @@ import '../screens/notifications_screen.dart';
 import '../screens/payments_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/tracking_list_screen.dart';
+import '../widgets/pill_nav_bar.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -73,7 +74,9 @@ class _SellerShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      backgroundColor: dark ? AppColors.darkBg : AppColors.lightBg,
       body: SafeArea(
+        bottom: false,
         child: IndexedStack(
           index: index,
           children: const [
@@ -85,42 +88,36 @@ class _SellerShell extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (i) {
+      bottomNavigationBar: PillNavBar(
+        index: index,
+        onSelected: (i) {
           ref.read(shellTabProvider.notifier).state = i;
           ref.invalidate(escrowListProvider);
         },
-        backgroundColor: dark
-            ? AppColors.darkContainer.withValues(alpha: 0.96)
-            : AppColors.snow,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        indicatorColor: Colors.transparent,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view),
+        items: const [
+          PillNavItem(
+            icon: Icons.grid_view_outlined,
+            selectedIcon: Icons.grid_view,
             label: 'Dashboard',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
+          PillNavItem(
+            icon: Icons.account_balance_wallet_outlined,
+            selectedIcon: Icons.account_balance_wallet,
             label: 'Payments',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.location_on_outlined),
-            selectedIcon: Icon(Icons.location_on),
+          PillNavItem(
+            icon: Icons.location_on_outlined,
+            selectedIcon: Icons.location_on,
             label: 'Tracking',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
+          PillNavItem(
+            icon: Icons.notifications_outlined,
+            selectedIcon: Icons.notifications,
             label: 'Alerts',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+          PillNavItem(
+            icon: Icons.settings_outlined,
+            selectedIcon: Icons.settings,
             label: 'Settings',
           ),
         ],
@@ -138,7 +135,9 @@ class _BuyerShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      backgroundColor: dark ? AppColors.darkBg : AppColors.lightBg,
       body: SafeArea(
+        bottom: false,
         child: IndexedStack(
           index: index,
           children: const [
@@ -149,37 +148,31 @@ class _BuyerShell extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (i) {
+      bottomNavigationBar: PillNavBar(
+        index: index,
+        onSelected: (i) {
           ref.read(shellTabProvider.notifier).state = i;
           ref.invalidate(escrowListProvider);
         },
-        backgroundColor: dark
-            ? AppColors.darkContainer.withValues(alpha: 0.96)
-            : AppColors.snow,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        indicatorColor: Colors.transparent,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
+        items: const [
+          PillNavItem(
+            icon: Icons.home_outlined,
+            selectedIcon: Icons.home,
             label: 'Home',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.qr_code_scanner_outlined),
-            selectedIcon: Icon(Icons.qr_code_scanner),
+          PillNavItem(
+            icon: Icons.qr_code_scanner_outlined,
+            selectedIcon: Icons.qr_code_scanner,
             label: 'Scan QR',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
+          PillNavItem(
+            icon: Icons.notifications_outlined,
+            selectedIcon: Icons.notifications,
             label: 'Alerts',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+          PillNavItem(
+            icon: Icons.settings_outlined,
+            selectedIcon: Icons.settings,
             label: 'Settings',
           ),
         ],
