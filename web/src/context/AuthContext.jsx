@@ -39,8 +39,14 @@ export function AuthProvider({ children }) {
     return applySession(setToken, setUser, data)
   }
 
-  async function register({ phoneNumber, role, rawPayload }) {
-    const data = await api.register({ phoneNumber, role, rawPayload })
+  async function register({ username, password, phoneNumber, role, rawPayload }) {
+    const data = await api.register({
+      username,
+      password,
+      phoneNumber,
+      role,
+      rawPayload,
+    })
     return applySession(setToken, setUser, data)
   }
 
