@@ -1,15 +1,51 @@
-import { useState } from 'react';
-import {useNavigate} from 'react-router-dom'
+import { useEffect, useState } from 'react';
+import {useNavigate, useSearchParams} from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import * as api from '../../lib/api'
 import './DisputeForm.css';
 function DisputeForm({disputeId}){
+    const { token } = useAuth()
+    const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const [contracts, setContracts] = useState([])
+    const [selectedId, setSelectedId] = useState(searchParams.get('id') || '')
+    const [reason, setReason] = useState('')
+    const [submitError, setSubmitError] = useState('')
+    const [submitting, setSubmitting] = useState(false)
     const [evidence, setEvidence] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState('');
     const [uploadSuccess, setUploadSuccess] = useState(false)
-    const handleSubmit = (event) => {
+    useEffect(() => {
+        if (!token) return
+        api.mineContracts(token)
+            .then((data) => {
+                const list = Array.isArray(data) ? data : []
+                setContracts(list)
+                if (!selectedId && list[0]) setSelectedId(list[0].id)
+            })
+            .catch(() => {})
+    }, [token])
+
+    const selected = contracts.find((c) => String(c.id) === String(selectedId))
+
+    const handleSubmit = async (event) => {
         event.preventDefault()
-        window.alert("Dispute submitted")
+        setSubmitError('')
+        if (!selectedId) {
+            setSubmitError('Choose a transaction first.')
+            return
+        }
+        setSubmitting(true)
+        try {
+            await api.openDispute(token, selectedId, reason)
+            navigate('/disputes/messages')
+        } catch (err) {
+            setSubmitError(err.message || 'Could not open the dispute.')
+        } finally {
+            setSubmitting(false)
+        }
     }
     const uploadEvidence = () => {
                 if(!evidence){
@@ -83,29 +119,44 @@ function DisputeForm({disputeId}){
 
     }
 
-    const navigate = useNavigate()
     return(
         <div className="dispute-page">
             <h1>Report a Dispute</h1>
              <p>Tell us what went wrong with this transaction.</p>
+            <div className="form-section">
+                <label htmlFor="contract">Transaction</label>
+                <select
+                    id="contract"
+                    value={selectedId}
+                    onChange={(event) => setSelectedId(event.target.value)}
+                    required
+                >
+                    <option value="">Select a contract</option>
+                    {contracts.map((contract) => (
+                        <option key={contract.id} value={contract.id}>
+                            {contract.item_name} — {Number(contract.amount).toFixed(2)} ETB
+                        </option>
+                    ))}
+                </select>
+            </div>
             <div className="transaction-summary">
                 <p>Transaction</p>
-                <span>#ET-10292</span>
-                <h2>Website Design</h2>
-                <span>3,000 ETB</span>
+                <span>{selected ? `#ET-${selected.id}` : '—'}</span>
+                <h2>{selected?.item_name || 'Choose a transaction'}</h2>
+                <span>{selected ? `${Number(selected.amount).toFixed(2)} ETB` : ''}</span>
                 
                     <div>
                         <div>
                             <span>Buyer</span>
-                            <strong>[Buyer name]</strong>
+                            <strong>{selected?.buyer_username || selected?.buyer_phone || '—'}</strong>
                         </div>
                         <div>
                             <span>Seller</span>
-                            <strong>[Seller name]</strong>
+                            <strong>{selected?.seller_username || selected?.seller_phone || '—'}</strong>
                         </div>
                         <div>
-                            <span>Opened</span>
-                            <strong>[opened date and time]</strong>
+                            <span>Status</span>
+                            <strong>{selected?.status || '—'}</strong>
                         </div>
                     </div>
             </div>
@@ -115,7 +166,7 @@ function DisputeForm({disputeId}){
                     Why are you disputing this transaction?
                 </label>
                 <p className='form-help'>Please explain what happened and why you believe this transaction should be disputed.</p>
-                <textarea required name="reason" id="reason" placeholder='Describe what went wrong...' />
+                <textarea required name="reason" id="reason" placeholder='Describe what went wrong...' value={reason} onChange={(event) => setReason(event.target.value)} />
             </div>
            <div className='form-section'>
                 <label htmlFor="evidence">
@@ -182,12 +233,17 @@ function DisputeForm({disputeId}){
                     </p>
                 </div>
             </div>
+            {submitError && (
+                <div className='upload-message upload-message-error'>
+                    <strong>{submitError}</strong>
+                </div>
+            )}
             <div className='form-actions'>
                 <button type='button' className='cancel-button' onClick={() => navigate('/transactions')}>
                     Cancel
                 </button>
-                <button type='submit' className='submit-button'>
-                    Submit Dispute
+                <button type='submit' className='submit-button' disabled={submitting}>
+                    {submitting ? 'Submitting…' : 'Submit Dispute'}
                 </button>
             </div>
             </form>

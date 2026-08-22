@@ -101,10 +101,17 @@ function ContractDetail({ contract }) {
 
       <button
         type="button"
-        onClick={() => navigate('/qr-code')}
+        onClick={() => navigate(`/qr-code?id=${contract.id}`)}
         className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white font-semibold py-3.5 rounded-xl transition-colors"
       >
         View QR Code
+      </button>
+      <button
+        type="button"
+        onClick={() => navigate(`/disputes?id=${contract.id}`)}
+        className="w-full mt-2 border border-[var(--border)] text-[var(--text-h)] font-semibold py-3.5 rounded-xl transition-colors"
+      >
+        Open dispute
       </button>
     </div>
   )

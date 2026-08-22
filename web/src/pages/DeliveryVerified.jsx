@@ -1,14 +1,20 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Check } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import * as api from '../lib/api'
 
 function DeliveryVerified() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const contractId = searchParams.get('id')
+  const { token } = useAuth()
+  const [contract, setContract] = useState(null)
 
-  // TODO: replace with real data from the POST /escrow/<id>/confirm-delivery/ response.
-  const transaction = {
-    id: 'ET-10294',
-    amount: 500.0,
-  }
+  useEffect(() => {
+    if (!token || !contractId) return
+    api.getContract(token, contractId).then(setContract).catch(() => {})
+  }, [token, contractId])
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-h)] p-4 flex items-center justify-center">
@@ -25,11 +31,13 @@ function DeliveryVerified() {
         <div className="text-left space-y-2 text-sm border-t border-[var(--border)] pt-4 mb-6">
           <div className="flex justify-between">
             <span className="text-[var(--text-muted)]">Transaction</span>
-            <span className="font-medium">{transaction.id}</span>
+            <span className="font-medium">{contract ? `ET-${contract.id}` : contractId || '—'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-[var(--text-muted)]">Amount</span>
-            <span className="font-medium">{transaction.amount.toFixed(2)} ETB</span>
+            <span className="font-medium">
+              {contract ? `${Number(contract.amount).toFixed(2)} ETB` : '—'}
+            </span>
           </div>
         </div>
 
