@@ -23,15 +23,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String? _localError;
 
   @override
-  void initState() {
-    super.initState();
-    final remembered = ref.read(sessionStoreProvider).rememberedUsername();
-    if (remembered != null && remembered.isNotEmpty) {
-      _username.text = remembered;
-    }
-  }
-
-  @override
   void dispose() {
     _username.dispose();
     _password.dispose();
@@ -46,7 +37,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
     setState(() => _localError = null);
-    await ref.read(sessionStoreProvider).setRememberedUsername(username);
     await ref.read(authControllerProvider.notifier).login(
           username: username,
           password: password,
