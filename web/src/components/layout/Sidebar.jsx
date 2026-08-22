@@ -42,6 +42,11 @@ const navigationItems = [
     label: 'Disputes',
     icon: 'gavel',
   },
+  {
+    to: '/admin',
+    label: 'Admin',
+    icon: 'admin_panel_settings',
+  },
 ];
 
 const settingsItems = [
