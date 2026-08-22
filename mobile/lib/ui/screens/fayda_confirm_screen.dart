@@ -21,26 +21,49 @@ class FaydaConfirmScreen extends ConsumerStatefulWidget {
 
 class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
   final _phone = TextEditingController();
+  final _password = TextEditingController();
+  final _confirmPassword = TextEditingController();
   var _role = 'BUYER';
+  var _hidePassword = true;
+  var _hideConfirm = true;
   String? _localError;
 
   @override
   void dispose() {
     _phone.dispose();
+    _password.dispose();
+    _confirmPassword.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     final phone = _phone.text.trim();
+    final password = _password.text;
+    final confirm = _confirmPassword.text;
+
     if (phone.isEmpty) {
       setState(() => _localError = 'Phone number is required.');
       return;
     }
+    if (password.isEmpty) {
+      setState(() => _localError = 'Password is required.');
+      return;
+    }
+    if (password.length < 8) {
+      setState(() => _localError = 'Password must be at least 8 characters.');
+      return;
+    }
+    if (password != confirm) {
+      setState(() => _localError = 'Passwords do not match.');
+      return;
+    }
+
     setState(() => _localError = null);
     await ref.read(authControllerProvider.notifier).registerWithFayda(
           rawPayload: widget.fayda.rawPayload,
           phoneNumber: normalizeEtPhone(phone),
           role: _role,
+          password: password,
         );
   }
 
@@ -50,6 +73,13 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
     return face is Uint8List ? face : Uint8List.fromList(face);
   }
 
+  /// Shows only the last 4 digits; the rest are replaced with bullet dots.
+  String _maskedFan(String fan) {
+    if (fan.length <= 4) return fan;
+    final visible = fan.substring(fan.length - 4);
+    return '${'•' * (fan.length - 4)}$visible';
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
@@ -57,6 +87,7 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
     final error = auth.error ?? _localError;
     final fayda = widget.fayda;
     final face = _faceBytes;
+    final rawFan = fayda.fan ?? '';
 
     return Scaffold(
       body: SafeArea(
@@ -66,6 +97,7 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
               children: [
+                // ── Header ──────────────────────────────────────────────────
                 Row(
                   children: [
                     IconButton(
@@ -84,6 +116,8 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
+
+                // ── Fayda info card ──────────────────────────────────────────
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -95,9 +129,10 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
                   ),
                   child: Column(
                     children: [
+                      // Profile photo from Fayda card
                       if (face != null)
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(44),
                           child: Image.memory(
                             face,
                             width: 88,
@@ -111,33 +146,60 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
                           height: 88,
                           decoration: BoxDecoration(
                             color: AppColors.crimson,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(44),
                           ),
                           child: const Icon(
-                            Icons.badge_outlined,
+                            Icons.person_outline,
                             color: AppColors.snow,
-                            size: 36,
+                            size: 40,
                           ),
                         ),
                       const SizedBox(height: 14),
                       _ReadonlyRow(label: 'Name', value: fayda.fullName),
                       _ReadonlyRow(label: 'Gender', value: fayda.genderLabel),
-                      _ReadonlyRow(
-                        label: 'Fayda number',
-                        value: fayda.fan ?? '—',
-                      ),
+                      if (rawFan.isNotEmpty)
+                        _ReadonlyRow(
+                          label: 'Fayda number',
+                          value: _maskedFan(rawFan),
+                          mono: true,
+                        ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+
+                // ── KYC verified badge ───────────────────────────────────────
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.verified_rounded,
+                      color: Color(0xFF2E7D32),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'KYC Verified',
+                      style: GoogleFonts.geist(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF2E7D32),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
                 Text(
                   'These fields come from your Fayda card and cannot be edited.',
+                  textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: dark
                             ? AppColors.darkMuted
                             : AppColors.lightMuted,
                       ),
                 ),
+
+                // ── Role picker ──────────────────────────────────────────────
                 const SizedBox(height: 28),
                 Text(
                   'I AM A',
@@ -171,18 +233,64 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
                     ),
                   ],
                 ),
+
+                // ── Phone ────────────────────────────────────────────────────
                 const SizedBox(height: 18),
                 IconField(
                   controller: _phone,
                   icon: Icons.phone_outlined,
                   hint: '+2519...',
                   keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.done,
+                  textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.telephoneNumber],
+                ),
+
+                // ── Password ─────────────────────────────────────────────────
+                const SizedBox(height: 14),
+                IconField(
+                  controller: _password,
+                  icon: Icons.lock_outline,
+                  hint: 'Password',
+                  obscureText: _hidePassword,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.newPassword],
+                  suffix: IconButton(
+                    onPressed: () =>
+                        setState(() => _hidePassword = !_hidePassword),
+                    icon: Icon(
+                      _hidePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                  ),
+                ),
+
+                // ── Confirm password ─────────────────────────────────────────
+                const SizedBox(height: 14),
+                IconField(
+                  controller: _confirmPassword,
+                  icon: Icons.lock_outline,
+                  hint: 'Confirm password',
+                  obscureText: _hideConfirm,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.newPassword],
                   onSubmitted: (_) {
                     if (!auth.busy) _submit();
                   },
+                  suffix: IconButton(
+                    onPressed: () =>
+                        setState(() => _hideConfirm = !_hideConfirm),
+                    icon: Icon(
+                      _hideConfirm
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                  ),
                 ),
+
+                // ── Error ────────────────────────────────────────────────────
                 if (error != null) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -194,6 +302,8 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
                     ),
                   ),
                 ],
+
+                // ── Submit ───────────────────────────────────────────────────
                 const SizedBox(height: 28),
                 SizedBox(
                   height: 52,
@@ -227,11 +337,18 @@ class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
   }
 }
 
+// ── Supporting widgets ───────────────────────────────────────────────────────
+
 class _ReadonlyRow extends StatelessWidget {
-  const _ReadonlyRow({required this.label, required this.value});
+  const _ReadonlyRow({
+    required this.label,
+    required this.value,
+    this.mono = false,
+  });
 
   final String label;
   final String value;
+  final bool mono;
 
   @override
   Widget build(BuildContext context) {
@@ -257,6 +374,8 @@ class _ReadonlyRow extends StatelessWidget {
               value,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
+                    fontFamily: mono ? 'monospace' : null,
+                    letterSpacing: mono ? 1.0 : null,
                   ),
             ),
           ),
