@@ -53,6 +53,7 @@ class AuthApi {
     required String rawPayload,
     required String phoneNumber,
     required String role,
+    required String password,
   }) {
     return _sessionFrom(
       _client.post(
@@ -61,8 +62,16 @@ class AuthApi {
           'raw_payload': rawPayload,
           'phone_number': phoneNumber,
           'role': role,
+          'password': password,
         },
       ),
+    );
+  }
+
+  Future<void> requestPasswordReset({required String username}) async {
+    await _client.post(
+      '/auth/password-reset/',
+      body: {'username': username},
     );
   }
 
