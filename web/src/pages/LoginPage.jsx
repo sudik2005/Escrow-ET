@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import FaydaQrInput from '../components/auth/FaydaQrInput'
+import BrandLogo from '../components/ui/BrandLogo'
 
 export default function LoginPage() {
   const { login, loginWithFayda } = useAuth()
@@ -55,8 +56,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-h)] flex items-center justify-center p-4">
       <div className="max-w-sm w-full bg-[var(--surface)] rounded-2xl shadow-[var(--shadow-card)] p-8">
         <div className="mb-8 text-center">
-          <div className="w-10 h-10 bg-[var(--brand)] rounded-xl flex items-center justify-center mx-auto mb-3">
-            <span className="text-white font-bold text-sm">ET</span>
+          <div className="w-12 h-12 rounded-xl overflow-hidden mx-auto mb-3 border border-[var(--border)]">
+            <BrandLogo className="w-full h-full object-contain" />
           </div>
           <h1 className="text-xl font-bold">Sign in</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">Welcome back to Escrow ET</p>
