@@ -20,7 +20,7 @@ class FaydaConfirmScreen extends ConsumerStatefulWidget {
 }
 
 class _FaydaConfirmScreenState extends ConsumerState<FaydaConfirmScreen> {
-  final _phone = TextEditingController();
+  final _phone = TextEditingController(text: '+2519');
   final _password = TextEditingController();
   final _confirmPassword = TextEditingController();
   var _role = 'BUYER';
