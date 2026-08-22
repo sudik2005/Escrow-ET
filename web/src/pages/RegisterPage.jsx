@@ -10,20 +10,42 @@ const ROLES = [
   { id: 'MERCHANT', label: 'Merchant' },
 ]
 
+const fieldClass =
+  'w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-h)] focus:outline-none focus:border-[var(--brand)]'
+
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({
+    username: '',
     phoneNumber: '',
+    password: '',
+    confirmPassword: '',
     role: 'SELLER',
     rawPayload: '',
   })
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
+  function setField(name, value) {
+    setForm((prev) => ({ ...prev, [name]: value }))
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
+    if (!form.username.trim()) {
+      setError('Username is required.')
+      return
+    }
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters.')
+      return
+    }
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
     if (!form.rawPayload.trim()) {
       setError('Scan or paste your Fayda QR first.')
       return
@@ -31,6 +53,8 @@ export default function RegisterPage() {
     setBusy(true)
     try {
       await register({
+        username: form.username.trim(),
+        password: form.password,
         phoneNumber: form.phoneNumber,
         role: form.role,
         rawPayload: form.rawPayload.trim(),
@@ -52,15 +76,24 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-xl font-bold">Create account</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">
-            Scan the back of your Fayda ID. Name, gender, and FAN come from the card.
+            Pick a username and password, then scan the back of your Fayda ID.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FaydaQrInput
-            value={form.rawPayload}
-            onChange={(rawPayload) => setForm((prev) => ({ ...prev, rawPayload }))}
-          />
+          <div>
+            <label className="block text-sm text-[var(--text)] mb-1.5">Username</label>
+            <input
+              name="username"
+              type="text"
+              required
+              autoComplete="username"
+              value={form.username}
+              onChange={(e) => setField('username', e.target.value)}
+              placeholder="abebe"
+              className={fieldClass}
+            />
+          </div>
 
           <div>
             <label className="block text-sm text-[var(--text)] mb-1.5">Phone number</label>
@@ -69,11 +102,46 @@ export default function RegisterPage() {
               type="tel"
               required
               value={form.phoneNumber}
-              onChange={(e) => setForm((prev) => ({ ...prev, phoneNumber: e.target.value }))}
+              onChange={(e) => setField('phoneNumber', e.target.value)}
               placeholder="09…"
-              className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-h)] focus:outline-none focus:border-[var(--brand)]"
+              className={fieldClass}
             />
           </div>
+
+          <div>
+            <label className="block text-sm text-[var(--text)] mb-1.5">Password</label>
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={form.password}
+              onChange={(e) => setField('password', e.target.value)}
+              placeholder="At least 8 characters"
+              className={fieldClass}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-[var(--text)] mb-1.5">Confirm password</label>
+            <input
+              name="confirmPassword"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={form.confirmPassword}
+              onChange={(e) => setField('confirmPassword', e.target.value)}
+              placeholder="Repeat password"
+              className={fieldClass}
+            />
+          </div>
+
+          <FaydaQrInput
+            value={form.rawPayload}
+            onChange={(rawPayload) => setField('rawPayload', rawPayload)}
+          />
 
           <div>
             <label className="block text-sm text-[var(--text)] mb-1.5">I am a…</label>
@@ -82,7 +150,7 @@ export default function RegisterPage() {
                 <button
                   key={r.id}
                   type="button"
-                  onClick={() => setForm((prev) => ({ ...prev, role: r.id }))}
+                  onClick={() => setField('role', r.id)}
                   className={`py-3 rounded-xl border text-sm font-semibold transition-colors ${
                     form.role === r.id
                       ? 'bg-[var(--brand)] border-[var(--brand)] text-white'

@@ -30,7 +30,9 @@ async function request(path, { token, method = 'GET', body } = {}) {
     const msg =
       data?.detail ||
       data?.error ||
-      Object.values(data || {}).flat().join(' ') ||
+      Object.entries(data || {})
+        .map(([key, value]) => `${key}: ${[].concat(value).join(' ')}`)
+        .join(' ') ||
       `Request failed (${res.status})`
     throw new ApiError(msg, res.status)
   }
@@ -48,10 +50,16 @@ export function loginWithFayda(rawPayload) {
   return request('/auth/login/', { method: 'POST', body: { raw_payload: rawPayload } })
 }
 
-export function register({ phoneNumber, role, rawPayload }) {
+export function register({ username, password, phoneNumber, role, rawPayload }) {
   return request('/auth/register/', {
     method: 'POST',
-    body: { phone_number: phoneNumber, role, raw_payload: rawPayload },
+    body: {
+      username,
+      password,
+      phone_number: phoneNumber,
+      role,
+      raw_payload: rawPayload,
+    },
   })
 }
 
