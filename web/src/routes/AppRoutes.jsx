@@ -15,6 +15,8 @@ import Checkout from '../pages/Checkout';
 import Payment from '../pages/Payment';
 import PaymentSuccess from '../pages/PaymentSuccess';
 import MerchantDashboard from '../pages/MerchantDashboard';
+import QRCodeView from '../pages/QRCodeView';
+import DeliveryVerified from '../pages/DeliveryVerified';
 
 
 function PlaceholderPage({ title, description }) {
@@ -72,6 +74,9 @@ function AppRoutes() {
         path="/payment-success"
         element={<PaymentSuccess />}
       />
+
+      <Route path="/qr-code" element={<QRCodeView />} />
+      <Route path="/delivery-verified" element={<DeliveryVerified />} />
 
 
       {/* =====================================================
