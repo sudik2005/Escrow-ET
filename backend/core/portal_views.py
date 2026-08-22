@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .merchant import can_create_escrow, generate_merchant_keys, get_or_create_merchant_settings
+from .notify import notify_merchant_webhook
 from .models import (
     Dispute,
     DisputeMessage,
@@ -212,10 +213,14 @@ class DisputeResolveView(APIView):
         if resolution == "release":
             record_escrow_released(dispute.escrow)
             dispute.status = Dispute.Status.RESOLVED_RELEASED
+            event = "escrow.released"
         else:
             record_escrow_refunded(dispute.escrow)
             dispute.status = Dispute.Status.RESOLVED_REFUNDED
+            event = "escrow.refunded"
         dispute.save(update_fields=["status"])
+        dispute.escrow.refresh_from_db()
+        notify_merchant_webhook(dispute.escrow, event)
         dispute.refresh_from_db()
         return Response(DisputeSerializer(dispute).data)
 
