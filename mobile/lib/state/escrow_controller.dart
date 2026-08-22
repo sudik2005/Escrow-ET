@@ -11,8 +11,9 @@ final escrowApiProvider = Provider<EscrowApi>((ref) {
 final escrowListProvider = FutureProvider<List<EscrowContract>>((ref) async {
   final session = ref.watch(authControllerProvider).session;
   if (session == null) return const [];
-  // Depend on role so a role-switch triggers a fresh fetch scoped to the new role.
-  // ignore: unused_local_variable
-  final role = session.user.role;
+  // Depend on account + role so a login or buyer↔seller switch never
+  // reuses the previous person's list.
+  session.user.id;
+  session.user.role;
   return ref.read(escrowApiProvider).mine(session.token);
 });
