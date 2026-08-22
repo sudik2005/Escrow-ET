@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from . import chapa
 from .fayda import FaydaError, verify_and_decode
 from .merchant import can_create_escrow
+from .notify import notify_merchant_webhook
 from .models import (
     Dispute,
     EscrowContract,
@@ -268,6 +269,7 @@ class SandboxFundView(APIView):
 
         record_escrow_funded(contract, payment_txn)
         contract.refresh_from_db()
+        notify_merchant_webhook(contract, "escrow.funded")
         return Response(EscrowContractSerializer(contract).data)
 
 
@@ -386,6 +388,7 @@ class ConfirmDeliveryView(APIView):
 
         record_escrow_released(contract)
         contract.refresh_from_db()
+        notify_merchant_webhook(contract, "escrow.released")
         return Response(EscrowContractSerializer(contract).data)
 
 
@@ -435,6 +438,7 @@ class OpenDisputeView(APIView):
         contract.status = EscrowContract.Status.DISPUTED
         contract.save(update_fields=["status", "updated_at"])
         contract.refresh_from_db()
+        notify_merchant_webhook(contract, "escrow.disputed")
 
         return Response(EscrowContractSerializer(contract).data, status=status.HTTP_201_CREATED)
 
@@ -482,5 +486,7 @@ class ChapaWebhookView(APIView):
         payment_txn.save(update_fields=["status", "raw_payload"])
 
         record_escrow_funded(payment_txn.escrow_contract, payment_txn)
+        payment_txn.escrow_contract.refresh_from_db()
+        notify_merchant_webhook(payment_txn.escrow_contract, "escrow.funded")
 
         return Response({"message": "Escrow funded"})
