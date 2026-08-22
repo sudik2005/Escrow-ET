@@ -3,12 +3,18 @@ import * as api from '../lib/api'
 
 const AuthContext = createContext(null)
 
+function applySession(setToken, setUser, data) {
+  localStorage.setItem('authToken', data.token)
+  setToken(data.token)
+  setUser(data.user)
+  return data.user
+}
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('authToken') || null)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // On mount, restore user from saved token
   useEffect(() => {
     if (!token) {
       setLoading(false)
@@ -17,7 +23,6 @@ export function AuthProvider({ children }) {
     api.me(token)
       .then((u) => setUser(u))
       .catch(() => {
-        // Token is stale — clear it
         localStorage.removeItem('authToken')
         setToken(null)
       })
@@ -26,18 +31,17 @@ export function AuthProvider({ children }) {
 
   async function login(username, password) {
     const data = await api.login(username, password)
-    localStorage.setItem('authToken', data.token)
-    setToken(data.token)
-    setUser(data.user)
-    return data.user
+    return applySession(setToken, setUser, data)
   }
 
-  async function register({ username, password, phoneNumber, role, email }) {
-    const data = await api.register({ username, password, phoneNumber, role, email })
-    localStorage.setItem('authToken', data.token)
-    setToken(data.token)
-    setUser(data.user)
-    return data.user
+  async function loginWithFayda(rawPayload) {
+    const data = await api.loginWithFayda(rawPayload)
+    return applySession(setToken, setUser, data)
+  }
+
+  async function register({ phoneNumber, role, rawPayload }) {
+    const data = await api.register({ phoneNumber, role, rawPayload })
+    return applySession(setToken, setUser, data)
   }
 
   function logout() {
@@ -47,7 +51,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, user, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ token, user, loading, login, loginWithFayda, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   )

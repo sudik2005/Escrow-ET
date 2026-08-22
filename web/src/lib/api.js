@@ -44,10 +44,14 @@ export function login(username, password) {
   return request('/auth/login/', { method: 'POST', body: { username, password } })
 }
 
-export function register({ username, password, phoneNumber, role, email = '' }) {
+export function loginWithFayda(rawPayload) {
+  return request('/auth/login/', { method: 'POST', body: { raw_payload: rawPayload } })
+}
+
+export function register({ phoneNumber, role, rawPayload }) {
   return request('/auth/register/', {
     method: 'POST',
-    body: { username, password, phone_number: phoneNumber, role, email },
+    body: { phone_number: phoneNumber, role, raw_payload: rawPayload },
   })
 }
 
@@ -101,5 +105,13 @@ export function confirmDelivery(token, id, { qrToken, pin } = {}) {
       ...(qrToken ? { qr_token: qrToken } : {}),
       ...(pin ? { pin } : {}),
     },
+  })
+}
+
+export function openDispute(token, id, reason) {
+  return request(`/escrow/${id}/dispute/`, {
+    method: 'POST',
+    token,
+    body: { reason },
   })
 }
