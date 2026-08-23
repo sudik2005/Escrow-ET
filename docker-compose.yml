@@ -1,0 +1,37 @@
+services:
+
+  # Django REST API — Gunicorn on port 8000
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    # All Django env vars (SECRET_KEY, DATABASE_URL, CHAPA_*, etc.) come from
+    # the repo-root .env file. See .env.example for required keys.
+    # Set DJANGO_ALLOWED_HOSTS to include "backend" when other services proxy to this one.
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  # React/Vite merchant portal — nginx on port 3000 (host) → 80 (container)
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Flutter APK build — run once, outputs APK to host filesystem
+  # Usage: docker compose --profile build run --rm mobile-build
+  mobile-build:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+    volumes:
+      - ./mobile/build/app/outputs/flutter-apk:/app/build/app/outputs/flutter-apk
+    profiles:
+      - build
