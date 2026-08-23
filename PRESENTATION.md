@@ -46,6 +46,11 @@
 10. [Security Architecture](#10-security-architecture)
 11. [Design System — Crimson Matrix](#11-design-system--crimson-matrix)
 12. [Infrastructure & Deployment](#12-infrastructure--deployment)
+   - 12.1 [Backend Deployment — Vercel Serverless](#121-backend-deployment--vercel-serverless)
+   - 12.2 [Database — Supabase](#122-database--supabase)
+   - 12.3 [Web Frontend — Vercel](#123-web-frontend--vercel)
+   - 12.4 [Environment Management](#124-environment-management)
+   - 12.5 [Docker — Self-Hosted / Local Deployment](#125-docker--self-hosted--local-deployment)
 13. [Key Technical Decisions & Trade-offs](#13-key-technical-decisions--trade-offs)
 14. [Data Flow Walkthroughs](#14-data-flow-walkthroughs)
 
@@ -1170,7 +1175,7 @@ themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
 
 ## 12. Infrastructure & Deployment
 
-### Backend Deployment — Vercel Serverless
+### 12.1 Backend Deployment — Vercel Serverless
 
 The Django backend is deployed to Vercel as a serverless Python function. `vercel.json` configures the WSGI handler and routes all requests to the Django app:
 
@@ -1183,7 +1188,7 @@ api/index.py → application = get_wsgi_application()
 - No background tasks or Celery (any long-running tasks must be refactored)
 - Cold starts are acceptable for this use case
 
-### Database — Supabase
+### 12.2 Database — Supabase
 
 Supabase provides a managed PostgreSQL database with:
 - Direct PostgreSQL connection string (port 5432)
@@ -1192,11 +1197,11 @@ Supabase provides a managed PostgreSQL database with:
 - Built-in Auth (not used here — Django's auth system is used instead)
 - Row-level security (not used — Django handles authorization)
 
-### Web Frontend — Vercel
+### 12.3 Web Frontend — Vercel
 
 The React app is built with `vite build` and deployed as static files on Vercel. The `web/vercel.json` handles SPA routing (all paths return `index.html` for client-side routing).
 
-### Environment Management
+### 12.4 Environment Management
 
 `.env` files are gitignored. `.env.example` files are committed with placeholder values:
 ```
@@ -1205,6 +1210,142 @@ DATABASE_URL=postgresql://postgres:password@db.supabase.co:5432/postgres
 CHAPA_SECRET_KEY=CHASECK-...
 CHAPA_WEBHOOK_SECRET=...
 ```
+
+### 12.5 Docker — Self-Hosted / Local Deployment
+
+In addition to Vercel, the entire project can be run inside Docker containers. This is useful for local development without installing Python or Node, for self-hosted deployments on a VPS, or for running the full stack on a machine that has no internet connection to Vercel.
+
+Vercel and Docker are **completely independent deployment paths**. All Vercel config files (`backend/vercel.json`, `web/vercel.json`, `backend/runtime.txt`, `backend/api/index.py`) are untouched. You can use either option depending on the environment.
+
+#### Files added to the repository
+
+```
+Escrow ET/
+├── docker-compose.yml          # Root orchestration — starts backend + web together
+├── backend/
+│   ├── Dockerfile              # Python 3.12-slim multi-stage build + Gunicorn
+│   └── .dockerignore           # Excludes .venv, __pycache__, .env, staticfiles
+├── web/
+│   ├── Dockerfile              # Node 22-alpine build + nginx:alpine serve
+│   ├── nginx.conf              # SPA rewrite config (mirrors web/vercel.json)
+│   └── .dockerignore           # Excludes node_modules, dist
+└── mobile/
+    ├── Dockerfile              # Flutter stable build image — outputs release APK
+    └── .dockerignore           # Excludes build/, .dart_tool/, .gradle/
+```
+
+`gunicorn==23.0.0` was also added to `backend/requirements.txt` as the production WSGI server.
+
+#### Architecture inside Docker
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                     docker-compose.yml                           │
+│                                                                  │
+│  ┌──────────────────────────┐   ┌────────────────────────────┐  │
+│  │  backend (port 8000)     │   │  web (port 3000 → 80)      │  │
+│  │                          │   │                            │  │
+│  │  python:3.12-slim        │   │  Stage 1: node:22-alpine   │  │
+│  │  + gunicorn (2 workers)  │   │    npm ci && npm run build  │  │
+│  │  + whitenoise (static)   │   │  Stage 2: nginx:alpine     │  │
+│  │                          │   │    serves dist/ on port 80 │  │
+│  │  env_file: .env          │   │                            │  │
+│  └────────────┬─────────────┘   └────────────────────────────┘  │
+│               │                                                  │
+│  ┌────────────▼─────────────────────────────────────────────┐   │
+│  │  Supabase PostgreSQL  (external — DATABASE_URL)          │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  mobile-build (profile: build — not started by default)         │
+│  ghcr.io/cirruslabs/flutter:stable                              │
+│  flutter build apk --release → ./mobile/build/.../app-release.apk│
+└──────────────────────────────────────────────────────────────────┘
+```
+
+#### backend/Dockerfile — how it works
+
+The Dockerfile uses a two-stage build to keep the final image small:
+
+- **Stage 1 (`builder`):** Installs all Python packages from `requirements.txt` into `/install` using `pip install --prefix`. The build tools (`build-essential`) are only present in this stage and are discarded afterwards.
+- **Stage 2 (`runtime`):** Copies only the installed packages from Stage 1. Runs `collectstatic` using dummy environment variables — no database connection is opened during this step, WhiteNoise compresses and fingerprints the static files at build time. Starts Gunicorn with 2 workers bound to `0.0.0.0:8000`.
+
+```
+ENV vars during collectstatic (build-time, not runtime):
+  DJANGO_SECRET_KEY=dummy-build-key
+  DATABASE_URL=postgres://x:x@localhost/x
+  (dj_database_url.parse() only parses the URL string — no connection is attempted)
+```
+
+At runtime, the real secrets come from `env_file: .env` in `docker-compose.yml`. Nothing sensitive is baked into the image.
+
+#### web/Dockerfile — how it works
+
+Also a two-stage build:
+
+- **Stage 1 (`builder`):** Runs `npm ci` (exact lockfile install) then `npm run build` (Vite). The output `dist/` folder contains all hashed JS/CSS bundles.
+- **Stage 2 (`runtime`):** `nginx:alpine` copies `dist/` into `/usr/share/nginx/html` and replaces the default nginx config with `web/nginx.conf`.
+
+`nginx.conf` handles SPA routing with `try_files $uri $uri/ /index.html` — the same behaviour as `web/vercel.json`'s catch-all rewrite. Static assets (JS, CSS, fonts, images) are served with a 1-year cache header because Vite hashes their filenames. `index.html` itself gets `no-store` so users always fetch the latest version after a redeploy.
+
+#### mobile/Dockerfile — how it works
+
+A single-stage container using `ghcr.io/cirruslabs/flutter:stable` (the official Flutter CI image used by the Flutter team itself):
+
+1. Copies `pubspec.yaml` and `pubspec.lock` first, then runs `flutter pub get`. This layer is cached by Docker — if only Dart source files change, the pub get step is skipped on the next build.
+2. Copies the full source tree and runs `flutter build apk --release`.
+3. The container has no long-running process — it is a one-shot build job.
+
+The APK is written to `build/app/outputs/flutter-apk/app-release.apk` inside the container. The compose volume mount exposes that path directly on the host so the APK is immediately available after the build finishes.
+
+#### How to use
+
+**Start the API and web portal:**
+```bash
+# First run builds the images (takes ~2–3 minutes)
+docker compose up --build
+
+# API available at:  http://localhost:8000
+# Web portal at:    http://localhost:3000
+```
+
+**Run in the background:**
+```bash
+docker compose up -d --build
+docker compose logs -f          # tail combined logs
+docker compose logs -f backend  # backend only
+```
+
+**Stop everything:**
+```bash
+docker compose down
+```
+
+**Build the Flutter release APK:**
+```bash
+# The mobile-build service has profile "build" — it does not start with a plain "up"
+docker compose --profile build run --rm mobile-build
+
+# APK is written to:
+# mobile/build/app/outputs/flutter-apk/app-release.apk
+```
+
+**Run Django management commands inside the running backend container:**
+```bash
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py shell
+```
+
+#### Environment variables for Docker
+
+The `backend` service reads the repo-root `.env` file. One Docker-specific entry to add:
+
+```
+# .env (Docker Compose run)
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,10.0.2.2,backend
+```
+
+`backend` (the Docker Compose service name) must be in `ALLOWED_HOSTS` so internal container-to-container HTTP calls are accepted. `localhost` and `127.0.0.1` cover browser access from the host machine. This is already documented in the updated `.env.example`.
 
 ---
 
