@@ -1,0 +1,30 @@
+---
+description: Backend database is Supabase PostgreSQL via DATABASE_URL; Django ORM only
+alwaysApply: true
+---
+
+# Database and ORM
+
+Kidus owns **database architecture and ORM** (schema, migrations, ledger tables) in `backend/`, in addition to Flutter in `mobile/`. The Django teammate builds the rest of the backend (API, webhooks, views). On DB tasks, generate models/migrations only unless asked for more.
+
+The source of truth is **Supabase PostgreSQL**, reached only through `DATABASE_URL` in the environment. Do not use SQLite, a hardcoded host/user/password in settings, or a client-side Supabase SDK for ledger writes.
+
+## Connection
+
+- Django reads `DATABASE_URL` (django-environ or dj-database-url) in `backend/` settings.
+- Require the variable at startup; do not silently fall back to SQLite.
+- Keep secrets in `.env` (gitignored). Commit `.env.example` with placeholders only.
+- Direct DB URL (port `5432`) for migrations. Do not put `DATABASE_URL` in Flutter or React.
+
+## ORM and integrity
+
+- Generate schema with **Django models + migrations**, not ad-hoc SQL as the source of truth.
+- Use real foreign keys, `CHECK`/`choices` constraints, and `unique_together` / unique constraints where the domain requires them.
+- Ledger writes (`record_escrow_funded` / `released` / `refunded`) run inside `transaction.atomic()`.
+- `LedgerTransaction` rows are immutable; corrections are new reversing transactions.
+- A matched debit + credit pair must sum to zero. Never store a mutable balance field as financial truth.
+
+## Clients
+
+- Flutter and React are JSON clients of the Django API. They never open a Postgres connection.
+---

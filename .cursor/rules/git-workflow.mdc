@@ -1,0 +1,15 @@
+---
+description: Feature branches merge into prototype; main is final only; never attribute Cursor
+alwaysApply: true
+---
+
+# Git workflow
+
+- Integration branch: `prototype`. Default branch `main` stays protected and is merged only when the whole project works.
+- Kidus and teammates: branch off `prototype` (`ui/`, `feat/`, `api/`, `models/`, `fix/`), open a PR **into `prototype`**. Do not target `main` for day-to-day work.
+- `prototype` is easy to merge (PR required, 0 approving reviews). `main` still needs PR + 1 approval.
+- Never make `prototype` the GitHub default branch.
+
+# No Cursor attribution
+
+Never add Cursor as an author, committer, co-author, or contributor. Do not put `Co-authored-by: Cursor`, `Made-with: Cursor`, or the name Cursor in commit messages, README, or any tracked file. GitHub history must show only the human teammates. If a commit would get a Cursor trailer, recreate it without that trailer before pushing.
