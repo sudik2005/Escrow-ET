@@ -85,15 +85,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // ── Brand mark ───────────────────────────────────────────────
                 Row(
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.crimson,
-                        borderRadius: BorderRadius.circular(12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        'assets/logo.png',
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
                       ),
-                      child: const Icon(Icons.hexagon_outlined,
-                          color: AppColors.snow, size: 24),
                     ),
                     const SizedBox(width: 12),
                     Text(
