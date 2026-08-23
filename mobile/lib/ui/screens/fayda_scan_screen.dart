@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../fayda/fayda_decoder.dart';
+import '../../models/registration_data.dart';
 import '../../state/auth_controller.dart';
 import '../../theme/app_colors.dart';
 import 'fayda_confirm_screen.dart';
@@ -12,9 +13,14 @@ import 'fayda_confirm_screen.dart';
 enum FaydaScanMode { login, register }
 
 class FaydaScanScreen extends ConsumerStatefulWidget {
-  const FaydaScanScreen({super.key, required this.mode});
+  const FaydaScanScreen({
+    super.key,
+    required this.mode,
+    this.registrationData,
+  });
 
   final FaydaScanMode mode;
+  final RegistrationData? registrationData;
 
   @override
   ConsumerState<FaydaScanScreen> createState() => _FaydaScanScreenState();
@@ -84,7 +90,10 @@ class _FaydaScanScreenState extends ConsumerState<FaydaScanScreen> {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => FaydaConfirmScreen(fayda: data),
+        builder: (_) => FaydaConfirmScreen(
+          fayda: data,
+          registrationData: widget.registrationData,
+        ),
       ),
     );
     if (!mounted) return;
