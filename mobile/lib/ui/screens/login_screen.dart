@@ -120,7 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Enter your name and password to sign in.',
+                  'Enter your username and password to sign in.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: dark
                             ? AppColors.darkMuted
@@ -133,7 +133,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 IconField(
                   controller: _username,
                   icon: Icons.person_outline,
-                  hint: 'Your name',
+                  hint: 'Username',
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.username],
                 ),
