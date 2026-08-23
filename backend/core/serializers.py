@@ -33,9 +33,19 @@ def _identity_from_payload(raw_payload: str) -> FaydaIdentity:
 
 
 class RegisterSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True, min_length=8)
     raw_payload = serializers.CharField(write_only=True)
     phone_number = serializers.CharField(max_length=20)
     role = serializers.CharField()
+
+    def validate_username(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Username cannot be blank.")
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("This username is already taken.")
+        return value
 
     def validate_role(self, value):
         allowed = (User.Role.BUYER, User.Role.SELLER, User.Role.MERCHANT)
@@ -66,11 +76,8 @@ class RegisterSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         identity: FaydaIdentity = validated_data["identity"]
-        username = identity.fan
-        if User.objects.filter(username=username).exists():
-            username = f"fayda_{identity.fan}"
         user = User(
-            username=username,
+            username=validated_data["username"],
             phone_number=validated_data["phone_number"],
             role=validated_data["role"],
             fayda_number=identity.fan,
@@ -79,7 +86,7 @@ class RegisterSerializer(serializers.Serializer):
             date_of_birth=identity.date_of_birth,
             kyc_verified=True,
         )
-        user.set_unusable_password()
+        user.set_password(validated_data["password"])
         user.save()
         return user
 
