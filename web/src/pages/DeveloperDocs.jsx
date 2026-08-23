@@ -44,7 +44,8 @@ export default function DeveloperDocs() {
         <ul className="m-0 list-disc space-y-2 pl-5 text-[14px] leading-[1.6] text-[var(--text)]">
           <li>
             Register: <code className="text-[var(--text-h)]">POST /auth/register/</code> with
-            Fayda <code className="text-[var(--text-h)]">raw_payload</code>, phone, and role.
+            username, password, phone, role, and Fayda{' '}
+            <code className="text-[var(--text-h)]">raw_payload</code>.
           </li>
           <li>
             Login: <code className="text-[var(--text-h)]">POST /auth/login/</code> with
