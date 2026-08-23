@@ -2,20 +2,22 @@ import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import FaydaQrInput from '../components/auth/FaydaQrInput'
+import BrandLogo from '../components/ui/BrandLogo'
 
 export default function LoginPage() {
   const { login, loginWithFayda } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const next = location.state?.from?.pathname || '/dashboard'
+  const from = location.state?.from?.pathname
   const [mode, setMode] = useState('password')
   const [form, setForm] = useState({ username: '', password: '' })
   const [rawPayload, setRawPayload] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  function goNext() {
-    navigate(next, { replace: true })
+  function goNext(user) {
+    const fallback = user?.role === 'BUYER' ? '/transactions' : '/dashboard'
+    navigate(from || fallback, { replace: true })
   }
 
   async function handlePassword(e) {
@@ -23,8 +25,8 @@ export default function LoginPage() {
     setError(null)
     setBusy(true)
     try {
-      await login(form.username, form.password)
-      goNext()
+      const user = await login(form.username, form.password)
+      goNext(user)
     } catch (err) {
       setError(err.message || 'Login failed. Check your credentials.')
     } finally {
@@ -41,8 +43,8 @@ export default function LoginPage() {
     }
     setBusy(true)
     try {
-      await loginWithFayda(rawPayload.trim())
-      goNext()
+      const user = await loginWithFayda(rawPayload.trim())
+      goNext(user)
     } catch (err) {
       setError(err.message || 'Fayda sign-in failed.')
     } finally {
@@ -54,8 +56,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-h)] flex items-center justify-center p-4">
       <div className="max-w-sm w-full bg-[var(--surface)] rounded-2xl shadow-[var(--shadow-card)] p-8">
         <div className="mb-8 text-center">
-          <div className="w-10 h-10 bg-[var(--brand)] rounded-xl flex items-center justify-center mx-auto mb-3">
-            <span className="text-white font-bold text-sm">ET</span>
+          <div className="w-12 h-12 rounded-xl overflow-hidden mx-auto mb-3 border border-[var(--border)]">
+            <BrandLogo className="w-full h-full object-contain" />
           </div>
           <h1 className="text-xl font-bold">Sign in</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">Welcome back to Escrow ET</p>

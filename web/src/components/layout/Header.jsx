@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/useTheme";
+import { useAuth } from "../../context/AuthContext";
+import * as api from "../../lib/api";
+import { displayName, initials, isDisputed, isReleased, statusLabel } from "../../lib/status";
 import "./Header.css";
 
 const routeTitles = {
@@ -17,8 +20,10 @@ const routeTitles = {
 
 const Header = ({ sidebarOpen, setSidebarOpen }) => {
   const { theme, toggleTheme } = useTheme();
+  const { user, token, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [notices, setNotices] = useState([]);
 
 const [profileMenu, setProfileMenu] = useState({
   path: null,
@@ -81,20 +86,45 @@ useEffect(() => {
   };
 }, [pathname]);
 
-
+useEffect(() => {
+  if (!token) return;
+  api.mineContracts(token)
+    .then((data) => {
+      const list = Array.isArray(data) ? data : [];
+      setNotices(
+        list.slice(0, 5).map((c) => ({
+          id: c.id,
+          title: isDisputed(c.status)
+            ? "Dispute open"
+            : isReleased(c.status)
+            ? "Funds released"
+            : statusLabel(c.status),
+          detail: c.item_name || `ET-${c.id}`,
+          tone: isDisputed(c.status)
+            ? "warning"
+            : isReleased(c.status)
+            ? "success"
+            : "info",
+        })),
+      );
+    })
+    .catch(() => setNotices([]));
+}, [token]);
 
   const handleLogout = () => {
-
     setProfileMenu({
-  path: location.pathname,
-  open: false,
-});
-
-    console.log("Logout clicked");
-
-    // Temporary navigation until backend authentication is connected.
+      path: location.pathname,
+      open: false,
+    });
+    logout();
     navigate("/");
   };
+
+  const profileLabel = displayName(user);
+  const roleLabel = user?.role
+    ? user.role.charAt(0) + user.role.slice(1).toLowerCase()
+    : "Account";
+  const avatarLetters = initials(profileLabel);
 
   return (
     <header className="header">
@@ -298,9 +328,11 @@ useEffect(() => {
               </svg>
             </span>
 
-            <span className="header__notification-badge">
-              3
-            </span>
+            {notices.length > 0 && (
+              <span className="header__notification-badge">
+                {notices.length}
+              </span>
+            )}
           </button>
 
           {notificationsOpen && (
@@ -312,42 +344,38 @@ useEffect(() => {
                 </div>
 
                 <span className="header__notification-count">
-                  3
+                  {notices.length}
                 </span>
               </div>
 
-              <div className="header__notification-item">
-                <span className="notification-dot success" />
-
-                <div>
-                  <strong>Payment released</strong>
-                  <span>
-                    ET-10093 has been released.
-                  </span>
+              {notices.length === 0 ? (
+                <div className="header__notification-item">
+                  <div>
+                    <strong>No new activity</strong>
+                    <span>Your contracts will show up here.</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="header__notification-item">
-                <span className="notification-dot warning" />
-
-                <div>
-                  <strong>New dispute</strong>
-                  <span>
-                    ET-10292 requires your attention.
-                  </span>
-                </div>
-              </div>
-
-              <div className="header__notification-item">
-                <span className="notification-dot info" />
-
-                <div>
-                  <strong>Payment link created</strong>
-                  <span>
-                    Coffee Beans link is ready.
-                  </span>
-                </div>
-              </div>
+              ) : (
+                notices.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/transactions?id=${item.id}`}
+                    className="header__notification-item"
+                    onClick={() =>
+                      setNotificationsMenu({
+                        path: location.pathname,
+                        open: false,
+                      })
+                    }
+                  >
+                    <span className={`notification-dot ${item.tone}`} />
+                    <div>
+                      <strong>{item.title}</strong>
+                      <span>{item.detail}</span>
+                    </div>
+                  </Link>
+                ))
+              )}
 
               <Link
                 to="/transactions"
@@ -384,32 +412,19 @@ useEffect(() => {
             aria-expanded={profileOpen}
             title="Profile menu"
           >
-            <div className="header__avatar">
-              <img
-                src="/profile.png"
-                alt="Bereket"
-                onError={(event) => {
-                  event.currentTarget.style.display =
-                    "none";
-
-                  event.currentTarget.parentElement.classList.add(
-                    "header__avatar--fallback"
-                  );
-                }}
-              />
-
+            <div className="header__avatar header__avatar--fallback">
               <span className="header__avatar-initials">
-                B
+                {avatarLetters}
               </span>
             </div>
 
             <div className="header__profile-info">
               <span className="header__profile-name">
-                Bereket
+                {profileLabel}
               </span>
 
               <span className="header__profile-role">
-                Merchant
+                {roleLabel}
               </span>
             </div>
 
@@ -433,7 +448,7 @@ useEffect(() => {
             </svg>
           </button>
 
-          {profileMenu && (
+          {profileOpen && (
             <div className="header__profile-menu">
               {/* Profile */}
               <button

@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Copy, Share2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import * as api from '../lib/api'
 
 function CreatePaymentLink() {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
+  const navigate = useNavigate()
+  const canCreate = user?.role === 'SELLER' || user?.role === 'MERCHANT'
   const [formData, setFormData] = useState({
     productName: '',
     amount: '',
@@ -46,11 +49,17 @@ function CreatePaymentLink() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-h)] p-4 flex items-center justify-center">
       <div className="max-w-md w-full bg-[var(--surface)] rounded-2xl shadow-[var(--shadow-card)] p-8">
         <div className="flex items-center gap-3 mb-6">
-          <button type="button" aria-label="Go back">
+          <button type="button" aria-label="Go back" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-bold">Create Payment Link</h1>
         </div>
+
+        {!canCreate && (
+          <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2 mb-4">
+            Sign in as a seller or merchant to create payment links. Buyers pay existing links.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -145,7 +154,7 @@ function CreatePaymentLink() {
 
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || !canCreate}
             className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl transition-colors mt-2"
           >
             {busy ? 'Creating…' : 'Generate Payment Link'}
@@ -178,7 +187,17 @@ function CreatePaymentLink() {
               >
                 Copy Link
               </button>
-              <button className="flex-1 bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white rounded-full py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: 'Escrow ET payment', url: generatedLink }).catch(() => {})
+                  } else {
+                    navigator.clipboard.writeText(generatedLink)
+                  }
+                }}
+                className="flex-1 bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white rounded-full py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
+              >
                 <Share2 className="w-3.5 h-3.5" />
                 Share Link
               </button>

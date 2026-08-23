@@ -4,8 +4,6 @@ import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import * as api from '../lib/api'
 
-const ESCROW_FEE_RATE = 0.02
-
 function Payment() {
   const navigate = useNavigate()
   const { contractId } = useParams()
@@ -38,13 +36,20 @@ function Payment() {
     setPayError(null)
     setRedirecting(true)
     try {
+      const existing = contract?.payment_link
+      if (existing) {
+        window.location.href = existing
+        return
+      }
       const data = await api.pay(token, contractId)
-      const chapaUrl = data.checkout_url || data.chapa_url || data.url
+      const chapaUrl =
+        data.payment_link || data.checkout_url || data.chapa_url || data.url
       if (chapaUrl) {
         window.location.href = chapaUrl
-      } else {
-        navigate(`/payment-success?id=${contractId}`)
+        return
       }
+      setPayError('Chapa did not return a checkout URL. Try sandbox payment.')
+      setRedirecting(false)
     } catch (err) {
       setPayError(err.message || 'Payment initiation failed. Try again.')
       setRedirecting(false)
@@ -64,8 +69,7 @@ function Payment() {
   }
 
   const itemAmount = contract ? Number(contract.amount) : 0
-  const escrowFee = parseFloat((itemAmount * ESCROW_FEE_RATE).toFixed(2))
-  const total = itemAmount + escrowFee
+  const total = itemAmount
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-h)] p-4 flex items-center justify-center">
@@ -113,18 +117,16 @@ function Payment() {
               </div>
               <div>
                 <p className="font-semibold">{contract.item_name}</p>
-                <p className="text-sm text-[var(--text-muted)]">by {contract.seller_username || 'Seller'}</p>
+                <p className="text-sm text-[var(--text-muted)]">
+                  by {contract.seller_username || contract.seller_phone || 'Seller'}
+                </p>
               </div>
             </div>
 
             <div className="space-y-2 mb-4 pb-4 border-b border-[var(--border)] text-sm">
               <div className="flex justify-between text-[var(--text)]">
-                <span>Product Price</span>
+                <span>Amount held in escrow</span>
                 <span>{itemAmount.toFixed(2)} ETB</span>
-              </div>
-              <div className="flex justify-between text-[var(--text)]">
-                <span>Escrow Protection Fee (2%)</span>
-                <span>{escrowFee.toFixed(2)} ETB</span>
               </div>
             </div>
 

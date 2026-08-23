@@ -44,15 +44,34 @@ export function AuthProvider({ children }) {
     return applySession(setToken, setUser, data)
   }
 
+  async function updateProfile(payload) {
+    const next = await api.updateProfile(token, payload)
+    setUser(next)
+    return next
+  }
+
   function logout() {
+    const current = token
     localStorage.removeItem('authToken')
     setToken(null)
     setUser(null)
+    if (current) {
+      api.logout(current).catch(() => {})
+    }
   }
 
   return (
     <AuthContext.Provider
-      value={{ token, user, loading, login, loginWithFayda, register, logout }}
+      value={{
+        token,
+        user,
+        loading,
+        login,
+        loginWithFayda,
+        register,
+        updateProfile,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

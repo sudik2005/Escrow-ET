@@ -13,6 +13,10 @@
     color var(--transition-normal, 200ms ease);
 }
 
+.landing-page section[id] {
+  scroll-margin-top: 88px;
+}
+
 
 /* =========================================================
    LANDING HEADER
@@ -74,15 +78,16 @@
 
   border-radius: var(--radius, 8px);
 
-  background: var(--brand);
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+
+  overflow: hidden;
 
   color: #ffffff;
 
   font-size: 16px;
   font-weight: 700;
-
-  box-shadow:
-    0 4px 12px var(--brand-border, rgba(192, 0, 0, 0.18));
 }
 
 
@@ -3148,6 +3153,67 @@
 
   .landing-stat:nth-child(3) {
     border-top: 1px solid var(--border);
+  }
+}
+
+
+/* =========================================================
+   COMPANY / LEGAL
+========================================================= */
+
+.landing-info {
+  width: min(1100px, 88%);
+  margin: 0 auto;
+  padding: 88px 0 72px;
+}
+
+.landing-info__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.landing-info__card {
+  padding: 24px 26px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.landing-info__card h3 {
+  margin: 0 0 10px;
+  color: var(--text-h);
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.landing-info__card p {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.landing-info__card a {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--brand);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.landing-info__card a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+  .landing-info {
+    width: min(100% - 32px, 760px);
+    padding: 64px 0 56px;
+  }
+
+  .landing-info__grid {
+    grid-template-columns: 1fr;
   }
 }
 

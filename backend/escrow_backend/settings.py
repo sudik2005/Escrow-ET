@@ -176,6 +176,8 @@ CHAPA_WEBHOOK_SECRET = os.getenv('CHAPA_WEBHOOK_SECRET', '')
 # Set ALLOW_SANDBOX_FUND=False in production once real Chapa webhooks are live.
 ALLOW_SANDBOX_FUND = os.getenv('ALLOW_SANDBOX_FUND', 'True').lower() == 'true'
 
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://escrow-et.vercel.app').rstrip('/')
+
 
 # INTERNATIONALIZATION
 
