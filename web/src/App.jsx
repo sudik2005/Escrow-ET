@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
@@ -117,6 +118,13 @@ function App() {
       <section id="spacer"></section>
     </>
   )
+=======
+import AppRoutes from './routes/AppRoutes'
+import './App.css'
+
+function App() {
+  return <AppRoutes />
+>>>>>>> prototype
 }
 
 export default App

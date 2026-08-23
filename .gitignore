@@ -41,6 +41,9 @@ build/
 .vscode/
 *.swp
 
+# Stitch extract (source zip stays in repo if added)
+stitch_design_extract/
+
 # Logs
 *.log
 ngrok.log

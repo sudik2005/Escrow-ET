@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .counter {
   font-size: 16px;
   padding: 5px 10px;
@@ -92,15 +93,251 @@
   @media (max-width: 1024px) {
     flex-direction: column;
     text-align: center;
+=======
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+
+.app {
+  width: 100%;
+  min-height: 100vh;
+
+  background: var(--bg);
+  color: var(--text);
+
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+
+/* =========================================================
+   GLOBAL INTERACTION TRANSITIONS
+========================================================= */
+
+button,
+a,
+input,
+textarea,
+select {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+
+/* =========================================================
+   BUTTON RESET
+========================================================= */
+
+button {
+  font-family: inherit;
+}
+
+
+/* =========================================================
+   IMAGE DEFAULTS
+========================================================= */
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   LINK RESET
+========================================================= */
+
+a {
+  text-decoration: none;
+}
+
+
+/* =========================================================
+   SELECTION
+========================================================= */
+
+::selection {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+html::-webkit-scrollbar {
+  width: 7px;
+}
+
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--text);
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] ::selection {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   LIGHT MODE
+========================================================= */
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+
+/* =========================================================
+   FOCUS ACCESSIBILITY
+========================================================= */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   DISABLED ELEMENTS
+========================================================= */
+
+button:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+
+/* =========================================================
+   APP PAGE WRAPPER
+
+   Useful for pages rendered inside AppLayout.
+========================================================= */
+
+.app-page {
+  width: 100%;
+  min-height: 100%;
+}
+
+
+/* =========================================================
+   CONTENT CONTAINER
+
+   Standard max-width container for application pages.
+========================================================= */
+
+.app-container {
+  width: 100%;
+  max-width: 1440px;
+
+  margin-left: auto;
+  margin-right: auto;
+
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+
+/* =========================================================
+   RESPONSIVE CONTAINER
+========================================================= */
+
+@media (max-width: 1024px) {
+  .app-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .app-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .app-container {
+    padding-left: 16px;
+    padding-right: 16px;
+>>>>>>> prototype
   }
 }
 
 #docs {
   border-right: 1px solid var(--border);
 
+<<<<<<< HEAD
   @media (max-width: 1024px) {
     border-right: none;
     border-bottom: 1px solid var(--border);
+=======
+/* =========================================================
+   PAGE SECTION
+========================================================= */
+
+.app-section {
+  width: 100%;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+>>>>>>> prototype
   }
 }
 
