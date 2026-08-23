@@ -54,6 +54,7 @@ class AuthApi {
     required String phoneNumber,
     required String role,
     required String password,
+    required String username,
   }) {
     return _sessionFrom(
       _client.post(
@@ -63,6 +64,7 @@ class AuthApi {
           'phone_number': phoneNumber,
           'role': role,
           'password': password,
+          'username': username,
         },
       ),
     );
