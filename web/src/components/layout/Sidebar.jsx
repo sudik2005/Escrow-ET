@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import BrandLogo from '../ui/BrandLogo';
 import './Sidebar.css';
-import logoImage from '../../assets/logo.png';
 
 /* =========================================================
    Icon
@@ -68,6 +69,10 @@ const settingsItems = [
 
 const Sidebar = ({ isOpen = true, onClose }) => {
   const sidebarRef = useRef(null);
+  const { user } = useAuth();
+  const visibleNav = navigationItems.filter(
+    (item) => item.to !== '/admin' || user?.role === 'ADMIN',
+  );
 
   /* ---------------------------------------------------------
      Close when clicking outside
@@ -202,11 +207,7 @@ const Sidebar = ({ isOpen = true, onClose }) => {
 
         <div className="sidebar__brand">
           <div className="sidebar__brand-icon">
-            <img
-              src={logoImage}
-              alt="Escrow ET logo"
-              className="sidebar__logo"
-            />
+            <BrandLogo className="sidebar__logo" />
           </div>
 
           <div className="sidebar__brand-text">
@@ -233,7 +234,7 @@ const Sidebar = ({ isOpen = true, onClose }) => {
             className="sidebar__nav"
             aria-label="Main navigation"
           >
-            {navigationItems.map(renderNavigationItem)}
+            {visibleNav.map(renderNavigationItem)}
           </nav>
         </div>
 

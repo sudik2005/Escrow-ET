@@ -3,30 +3,26 @@ import { useNavigate } from "react-router-dom";
 import "./MerchantDashboard.css";
 import { useAuth } from "../context/AuthContext";
 import * as api from "../lib/api";
-
-function fmtEtb(n) {
-  return `${Number(n).toLocaleString("en-ET", { minimumFractionDigits: 2 })} ETB`;
-}
-
-function statusVariant(status) {
-  if (!status) return "locked";
-  const s = status.toLowerCase();
-  if (s.includes("released")) return "released";
-  if (s.includes("funded") || s.includes("locked")) return "locked";
-  if (s.includes("disputed")) return "disputed";
-  return "locked";
-}
+import {
+  displayName,
+  fmtEtb,
+  isDisputed,
+  isLocked,
+  isPendingPayment,
+  isReleased,
+  statusLabel,
+  statusVariant,
+} from "../lib/status";
 
 function contractToRow(c) {
   const variant = statusVariant(c.status);
-  const status = variant.charAt(0).toUpperCase() + variant.slice(1);
   return {
     id: `ET-${c.id}`,
     rawId: c.id,
     title: c.item_name || "—",
     buyer: c.buyer_username || c.buyer_phone || "—",
     amount: fmtEtb(c.amount),
-    status,
+    status: statusLabel(c.status),
     date: c.created_at
       ? new Date(c.created_at).toLocaleString("en-ET", {
           day: "2-digit",
@@ -259,10 +255,10 @@ function Disputes({ items = [] }) {
               <div className="dispute-value">
                 <strong>{dispute.amount}</strong>
 
-                <button type="button">
+                <a href={`/disputes/messages?id=${dispute.disputeId || ""}`}>
                   {dispute.status}
                   <Icon>arrow_forward</Icon>
-                </button>
+                </a>
               </div>
             </div>
           ))
@@ -278,10 +274,10 @@ function Footer() {
       <p>Copyright © 2024 Escrow ET</p>
 
       <div>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Contact Support</a>
-        <a href="#">Security Guide</a>
+        <a href="/#privacy">Privacy Policy</a>
+        <a href="/#terms">Terms of Service</a>
+        <a href="/#contact">Contact Support</a>
+        <a href="/#security">Security Guide</a>
       </div>
     </footer>
   );
@@ -302,22 +298,18 @@ export default function MerchantDashboard() {
       .finally(() => setLoadingContracts(false));
   }, [token]);
 
-  // Compute summary from real contracts
   const locked = contracts
-    .filter((c) => {
-      const s = (c.status || "").toLowerCase();
-      return s.includes("funded") || s.includes("locked");
-    })
+    .filter((c) => isLocked(c.status))
     .reduce((sum, c) => sum + Number(c.amount), 0);
 
   const released = contracts
-    .filter((c) => (c.status || "").toLowerCase().includes("released"))
+    .filter((c) => isReleased(c.status))
     .reduce((sum, c) => sum + Number(c.amount), 0);
 
   const summaryCards = [
     {
-      title: "Total Balance",
-      value: fmtEtb(locked + released),
+      title: "Wallet balance",
+      value: fmtEtb(user?.balance ?? 0),
       icon: "account_balance_wallet",
       variant: "primary",
     },
@@ -344,7 +336,7 @@ export default function MerchantDashboard() {
   const rows = contracts.slice(0, 10).map(contractToRow);
 
   const paymentLinks = contracts
-    .filter((c) => (c.status || "").toLowerCase() === "created")
+    .filter((c) => isPendingPayment(c.status))
     .slice(0, 5)
     .map((c) => ({
       title: c.item_name || "Payment",
@@ -359,10 +351,11 @@ export default function MerchantDashboard() {
     }));
 
   const disputes = contracts
-    .filter((c) => (c.status || "").toLowerCase().includes("disputed"))
+    .filter((c) => isDisputed(c.status))
     .slice(0, 5)
     .map((c) => ({
       id: `ET-${c.id}`,
+      disputeId: c.dispute_id,
       title: c.item_name || "—",
       amount: fmtEtb(c.amount),
       status: "Open",
@@ -379,7 +372,7 @@ export default function MerchantDashboard() {
             </p>
 
             <h1 className="dashboard-greeting">
-              Hello, {user?.username || "there"} <span>👋</span>
+              Hello, {displayName(user)} <span>👋</span>
             </h1>
 
             <p className="dashboard-subtitle">

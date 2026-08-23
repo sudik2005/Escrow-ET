@@ -9,15 +9,19 @@ function QRCodeView() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const contractId = searchParams.get('id')
-  const { token, loading: authLoading } = useAuth()
+  const { token, user, loading: authLoading } = useAuth()
   const [contract, setContract] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [pin, setPin] = useState('')
 
   useEffect(() => {
     if (authLoading) return
     if (!token) {
-      navigate('/login', { replace: true, state: { from: { pathname: `/qr-code${contractId ? `?id=${contractId}` : ''}` } } })
+      navigate('/login', {
+        replace: true,
+        state: { from: { pathname: `/qr-code${contractId ? `?id=${contractId}` : ''}` } },
+      })
       return
     }
     if (!contractId) {
@@ -29,12 +33,19 @@ function QRCodeView() {
       .catch((err) => setError(err.message || 'Contract not found.'))
   }, [authLoading, token, contractId, navigate])
 
+  const isBuyer = user && contract && String(user.id) === String(contract.buyer_id)
+
   async function handleConfirm() {
-    if (!contract?.delivery_qr_token) return
     setBusy(true)
     setError(null)
     try {
-      await api.confirmDelivery(token, contract.id, { qrToken: contract.delivery_qr_token })
+      await api.confirmDelivery(
+        token,
+        contract.id,
+        pin.trim()
+          ? { pin: pin.trim() }
+          : { qrToken: contract.delivery_qr_token },
+      )
       navigate(`/delivery-verified?id=${contract.id}`)
     } catch (err) {
       setError(err.message || 'Could not confirm delivery.')
@@ -54,9 +65,9 @@ function QRCodeView() {
           <h1 className="text-lg font-bold">Delivery</h1>
         </div>
 
-        <h2 className="text-lg font-bold mb-2">Show this QR code to the delivery person</h2>
+        <h2 className="text-lg font-bold mb-2">Show this QR code at delivery</h2>
         <p className="text-sm text-[var(--text-muted)] mb-6">
-          This code is unique to your transaction and will expire after use.
+          The buyer confirms with this QR or the deal PIN. Funds release only after a match.
         </p>
 
         {qrValue ? (
@@ -82,18 +93,35 @@ function QRCodeView() {
           </div>
         </div>
 
+        {isBuyer && (
+          <div className="text-left mb-4">
+            <label className="block text-sm text-[var(--text)] mb-1.5" htmlFor="delivery-pin">
+              Delivery PIN (optional)
+            </label>
+            <input
+              id="delivery-pin"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-h)] focus:outline-none focus:border-[var(--brand)]"
+              placeholder="Enter PIN if you are confirming by PIN"
+            />
+          </div>
+        )}
+
         {error && contract && (
           <p className="text-sm text-red-500 mb-4">{error}</p>
         )}
 
-        <button
-          type="button"
-          disabled={!contract || busy}
-          onClick={handleConfirm}
-          className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl transition-colors"
-        >
-          {busy ? 'Confirming…' : 'Confirm delivery'}
-        </button>
+        {isBuyer && (
+          <button
+            type="button"
+            disabled={!contract || busy}
+            onClick={handleConfirm}
+            className="w-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl transition-colors"
+          >
+            {busy ? 'Confirming…' : 'Confirm delivery'}
+          </button>
+        )}
       </div>
     </div>
   )

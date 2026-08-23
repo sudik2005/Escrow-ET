@@ -1,64 +1,55 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {FiMenu, FiBell, FiAlertTriangle, FiChevronRight} from 'react-icons/fi';
+import { FiAlertTriangle, FiChevronRight } from 'react-icons/fi';
 import './AdminDashboard.css';
-import {useTheme} from '../../context/useTheme';
-import React from "react";
-function AdminDashboard({sidebarOpen, toggleSidebar}){
+import { useAuth } from '../../context/AuthContext';
+import * as api from '../../lib/api';
+import { fmtEtb } from '../../lib/status';
+
+function AdminDashboard() {
     const navigate = useNavigate();
-    const {theme, toggleTheme} = useTheme();
+    const { token } = useAuth();
+    const [overview, setOverview] = useState(null);
+    const [disputes, setDisputes] = useState([]);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (!token) return;
+        Promise.all([api.adminOverview(token), api.listDisputes(token)])
+            .then(([stats, list]) => {
+                setOverview(stats);
+                setDisputes(Array.isArray(list) ? list.slice(0, 8) : []);
+            })
+            .catch((err) => setError(err.message || 'Could not load admin data.'));
+    }, [token]);
+
     const stats = [
         {
             title: 'Total Transactions',
-            value: '10,245',
+            value: overview ? String(overview.total_transactions) : '—',
         },
         {
             title: 'Total Locked',
-            value: '3,500 ETB',
+            value: overview ? fmtEtb(overview.total_locked) : '—',
         },
         {
             title: 'Total Released',
-            value: '8,950 ETB',
+            value: overview ? fmtEtb(overview.total_released) : '—',
         },
         {
             title: 'Open Disputes',
-            value: '12',
+            value: overview ? String(overview.open_disputes) : '—',
         },
     ];
-    const recentDisputes = [
-        {
-            id: 'ET-10194',
-            title: 'Yirgacheffe Coffee',
-            amount: '500 ETB',
-            status: 'Disputed',
-        },
-        {
-            id: 'ET-10191',
-            title: 'Laptop Purchase',
-            amount: '8,500 ETB',
-            status: 'Under Review',
-        },
-        {
-            id: 'ET-10192',
-            title: 'Website Design',
-            amount: '3,000 ETB',
-            status: 'Disputed',
-        },
-    ];
-    return(
+
+    return (
         <div className="admin-dashboard">
             <header className="admin-header">
                 <div className="admin-header-left">
-                    <button className="menu-button" onClick={toggleSidebar} aria-label={sidebarOpen ? 'Close menu' : 'Open menu'} aria-expanded={sidebarOpen}><FiMenu /></button>
                     <h1>Admin Dashboard</h1>
                 </div>
-                <div className="admin-header-right">
-                    <button className="admin-header-button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'dark'? 'Switch to light mode': 'Switch to dark mode'}>
-                        {theme === 'dark'? '☀': '☾'}
-                    </button>
-                    <button className="notification-button" aria-label="Notifications"><FiBell /></button>
-                <button className="admin-header-button" aria-label="Profile">👤</button>
-                </div>
             </header>
+            {error && <p className="text-sm text-red-500 px-4">{error}</p>}
             <section className="admin-stats">
                 {stats.map((stat) => (
                     <article className="stat-card" key={stat.title}>
@@ -73,15 +64,20 @@ function AdminDashboard({sidebarOpen, toggleSidebar}){
                     <button className="view-all-button" onClick={() => navigate('/admin/disputes')}>View all</button>
                 </div>
                 <div className="dispute-list">
-                    {recentDisputes.map((dispute) => (
+                    {disputes.length === 0 && (
+                        <p className="text-sm text-[var(--text-muted)] py-6">No disputes yet.</p>
+                    )}
+                    {disputes.map((dispute) => (
                         <button className="dispute-row" key={dispute.id} onClick={() => navigate(`/admin/disputes/${dispute.id}`)}>
                             <div className="dispute-row-icon"><FiAlertTriangle /></div>
                             <div className="dispute-row-info">
                                 <span className="dispute-id">{dispute.id}</span>
-                                <span className="dispute-title">{dispute.title}</span>
+                                <span className="dispute-title">{dispute.item_name}</span>
                             </div>
-                            <span className="dispute-amount">{dispute.amount}</span>
-                            <span className={`dispute-status ${dispute.status === 'Under Review'? 'under-review' : 'disputed'}`}>{dispute.status}</span>
+                            <span className="dispute-amount">{fmtEtb(dispute.amount)}</span>
+                            <span className={`dispute-status ${dispute.status === 'UNDER_REVIEW' ? 'under-review' : 'disputed'}`}>
+                                {dispute.status}
+                            </span>
                             <span className="dispute-arrow"><FiChevronRight /></span>
                         </button>
                     ))}
@@ -90,4 +86,5 @@ function AdminDashboard({sidebarOpen, toggleSidebar}){
         </div>
     )
 }
+
 export default AdminDashboard;
