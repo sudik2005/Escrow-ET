@@ -129,6 +129,7 @@ class AuthController extends Notifier<AuthState> {
     required String phoneNumber,
     required String role,
     required String password,
+    required String username,
   }) {
     return _authenticate(
       () => _api.registerWithFayda(
@@ -136,6 +137,7 @@ class AuthController extends Notifier<AuthState> {
         phoneNumber: phoneNumber,
         role: role,
         password: password,
+        username: username,
       ),
     );
   }
