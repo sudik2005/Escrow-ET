@@ -75,4 +75,12 @@ class SessionStore {
   Future<void> setText(String key, String value) async {
     await _box?.put(key, value);
   }
+
+  Future<void> savePin(String contractId, String pin) async {
+    await _box?.put('pin_$contractId', pin);
+  }
+
+  String? loadPin(String contractId) {
+    return _box?.get('pin_$contractId') as String?;
+  }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -10,9 +11,14 @@ import '../widgets/app_controls.dart';
 import '../widgets/app_header.dart';
 
 class QrVerifyScreen extends StatefulWidget {
-  const QrVerifyScreen({super.key, required this.contract});
+  const QrVerifyScreen({
+    super.key,
+    required this.contract,
+    this.sellerPin,
+  });
 
   final EscrowContract contract;
+  final String? sellerPin;
 
   @override
   State<QrVerifyScreen> createState() => _QrVerifyScreenState();
@@ -22,6 +28,7 @@ class _QrVerifyScreenState extends State<QrVerifyScreen> {
   static const _duration = Duration(minutes: 5);
   late Duration _remaining;
   Timer? _timer;
+  bool _pinVisible = false;
 
   @override
   void initState() {
@@ -164,6 +171,17 @@ class _QrVerifyScreenState extends State<QrVerifyScreen> {
                   ),
                   const SizedBox(height: 28),
 
+                  // ── Delivery PIN card ─────────────────
+                  if (widget.sellerPin != null) ...[
+                    _PinCard(
+                      pin: widget.sellerPin!,
+                      visible: _pinVisible,
+                      onToggle: () =>
+                          setState(() => _pinVisible = !_pinVisible),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
                   // ── Security notice ────────────────────
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -193,7 +211,7 @@ class _QrVerifyScreenState extends State<QrVerifyScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'This code grants temporary access and will expire. Do not screenshot or share it.',
+                                'The QR code grants one-time access and will expire. Share the PIN only with your buyer — never with third parties.',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -277,6 +295,135 @@ class _QrVerifyScreenState extends State<QrVerifyScreen> {
         child: _L(color: color, len: len, thick: thick, flip: true, vFlip: true),
       ),
     ];
+  }
+}
+
+// ── PIN display card ──────────────────────────────────────────────────────────
+class _PinCard extends StatelessWidget {
+  const _PinCard({
+    required this.pin,
+    required this.visible,
+    required this.onToggle,
+  });
+
+  final String pin;
+  final bool visible;
+  final VoidCallback onToggle;
+
+  String get _formatted {
+    final half = (pin.length / 2).floor();
+    return '${pin.substring(0, half)}  ${pin.substring(half)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = AppColors.isDark(context);
+    final surface = dark ? AppColors.darkSurface : AppColors.snow;
+    final border = Theme.of(context).colorScheme.outline;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.pin_outlined, size: 16, color: AppColors.crimson),
+              const SizedBox(width: 8),
+              Text(
+                'DELIVERY PIN',
+                style: GoogleFonts.geist(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                  color: AppColors.crimson,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: onToggle,
+                child: Icon(
+                  visible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  size: 18,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  visible ? _formatted : '●●●●  ●●●●',
+                  style: GoogleFonts.geistMono(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 4,
+                    color: visible
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.25),
+                  ),
+                ),
+              ),
+              if (visible)
+                GestureDetector(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: pin));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('PIN copied to clipboard')),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.crimson.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.copy_outlined,
+                            size: 13, color: AppColors.crimson),
+                        const SizedBox(width: 5),
+                        Text(
+                          'COPY',
+                          style: GoogleFonts.geist(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.crimson,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Share this PIN with your buyer so they can confirm delivery remotely.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: dark ? AppColors.darkMuted : AppColors.lightMuted,
+                  height: 1.4,
+                ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

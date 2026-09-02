@@ -85,20 +85,35 @@ export function getContract(token, id) {
   return request(`/escrow/${id}/`, { token })
 }
 
-export function createContract(token, { buyerPhone, itemName, amount }) {
+export async function createContract(token, { buyerPhone, itemName, amount }) {
   const pin = Array.from(crypto.getRandomValues(new Uint8Array(4)))
     .map((b) => b % 10)
     .join('')
-  return request('/escrow/create/', {
+  const fullPin = `${pin}${pin}`
+  const contract = await request('/escrow/create/', {
     method: 'POST',
     token,
     body: {
       buyer_phone: buyerPhone,
       item_name: itemName,
       amount: String(amount),
-      verification_pin: `${pin}${pin}`,
+      verification_pin: fullPin,
     },
   })
+  try {
+    localStorage.setItem(`escrow_pin_${contract.id}`, fullPin)
+  } catch {
+    // localStorage unavailable (private mode etc.) — silently skip
+  }
+  return contract
+}
+
+export function loadPin(contractId) {
+  try {
+    return localStorage.getItem(`escrow_pin_${contractId}`) || null
+  } catch {
+    return null
+  }
 }
 
 export function pay(token, id) {

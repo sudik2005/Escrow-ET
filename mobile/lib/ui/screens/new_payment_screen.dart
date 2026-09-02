@@ -26,8 +26,6 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
   var _busy = false;
   String? _error;
 
-  /// Auto-generated behind the scenes — seller never sees it.
-  /// The QR code is the primary delivery verification method.
   static String _generatePin() {
     final rng = Random.secure();
     return List.generate(8, (_) => rng.nextInt(10)).join();
@@ -56,13 +54,15 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
       _error = null;
     });
     try {
-      await ref.read(escrowApiProvider).create(
+      final pin = _generatePin();
+      final contract = await ref.read(escrowApiProvider).create(
             token: token,
             buyerPhone: normalizeEtPhone(phone),
             itemName: item,
             amount: amount,
-            pin: _generatePin(),
+            pin: pin,
           );
+      await ref.read(sessionStoreProvider).savePin(contract.id, pin);
       if (mounted) Navigator.of(context).pop(true);
     } on ApiException catch (e) {
       if (mounted) setState(() { _busy = false; _error = e.message; });

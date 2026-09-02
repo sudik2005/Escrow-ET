@@ -97,6 +97,28 @@ class _TrackingDetailScreenState
         .showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  Future<void> _showPinEntry(String token) async {
+    final pinCtrl = TextEditingController();
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _PinEntrySheet(controller: pinCtrl),
+    );
+    pinCtrl.dispose();
+    if (confirmed != true || !mounted) return;
+    final pin = pinCtrl.text.trim();
+    if (pin.isEmpty) return;
+    _run(
+      () => ref.read(escrowApiProvider).confirmDelivery(
+            token: token,
+            id: _contract.id,
+            pin: pin,
+          ),
+      done: 'Delivery confirmed. Funds released.',
+    );
+  }
+
   int get _activeIndex {
     if (_contract.status == 'DISPUTED') return 1;
     final idx =
@@ -300,10 +322,15 @@ class _TrackingDetailScreenState
                         label: 'SHOW DELIVERY QR',
                         outlined: true,
                         onPressed: () {
+                          final pin = ref
+                              .read(sessionStoreProvider)
+                              .loadPin(_contract.id);
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => QrVerifyScreen(
-                                  contract: _contract),
+                                contract: _contract,
+                                sellerPin: pin,
+                              ),
                             ),
                           );
                         },
@@ -338,6 +365,16 @@ class _TrackingDetailScreenState
                             done: 'Delivery confirmed. Funds released.',
                           );
                         },
+                      ),
+                      const SizedBox(height: 12),
+                      AppButton(
+                        label: 'ENTER PIN TO CONFIRM',
+                        outlined: true,
+                        busy: _busy,
+                        icon: Icons.pin_outlined,
+                        onPressed: token == null
+                            ? null
+                            : () => _showPinEntry(token),
                       ),
                     ],
 
@@ -513,6 +550,127 @@ class _TimelineStep extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── PIN entry bottom sheet ─────────────────────────────────────────────────────
+class _PinEntrySheet extends StatefulWidget {
+  const _PinEntrySheet({required this.controller});
+  final TextEditingController controller;
+
+  @override
+  State<_PinEntrySheet> createState() => _PinEntrySheetState();
+}
+
+class _PinEntrySheetState extends State<_PinEntrySheet> {
+  @override
+  Widget build(BuildContext context) {
+    final dark = AppColors.isDark(context);
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+        decoration: BoxDecoration(
+          color: dark ? AppColors.darkSurface : AppColors.snow,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: dark
+                      ? AppColors.darkContainerHigh
+                      : AppColors.lightContainer,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Enter Delivery PIN',
+              style: GoogleFonts.geist(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Ask your seller for the PIN. Enter it here to confirm delivery and release the funds.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: dark ? AppColors.darkMuted : AppColors.lightMuted,
+                    height: 1.5,
+                  ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: widget.controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 8,
+              style: GoogleFonts.geistMono(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 6,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              decoration: InputDecoration(
+                counterText: '',
+                hintText: '• • • • • • • •',
+                hintStyle: GoogleFonts.geistMono(
+                  fontSize: 20,
+                  letterSpacing: 4,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.2),
+                ),
+                filled: true,
+                fillColor: dark
+                    ? AppColors.darkContainerHigh
+                    : AppColors.lightContainer,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.crimson,
+                  foregroundColor: AppColors.snow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'CONFIRM DELIVERY',
+                  style: GoogleFonts.geist(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
