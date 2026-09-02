@@ -16,6 +16,10 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false)
 
   function goNext(user) {
+    if (user?.role === 'ADMIN') {
+      navigate('/admin', { replace: true })
+      return
+    }
     const fallback = user?.role === 'BUYER' ? '/transactions' : '/dashboard'
     navigate(from || fallback, { replace: true })
   }
@@ -25,7 +29,7 @@ export default function LoginPage() {
     setError(null)
     setBusy(true)
     try {
-      const user = await login(form.username, form.password)
+      const user = await login(form.username.trim(), form.password)
       goNext(user)
     } catch (err) {
       setError(err.message || 'Login failed. Check your credentials.')
